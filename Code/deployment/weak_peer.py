@@ -1,14 +1,6 @@
-import socket
-import select
-import errno
-import os
-import time
+import socket, select, errno
+import os, time, json, hashlib, sys, datetime
 from threading import Thread
-import json
-import hashlib
-import sys
-import hashlib
-import datetime
 from pathlib import Path
 from _thread import *
 
@@ -16,12 +8,14 @@ from _thread import *
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
 
 CLIENT_ID = int(os.path.basename(Path(os.path.realpath(__file__)).parent).split('_')[1])
-IP = config['client']['ip_address']
-STRONG_PEER_PORT = config['server']['port']
-SERVER_PORT = config['client']['port']
+IP = config['clients'][CLIENT_ID]['ip_address']
+SERVER_PORT = config['clients'][CLIENT_ID]['port']
+DOWNLOAD_FOLDER_NAME = config['client'][CLIENT_ID]['download_folder_name']
+EDGES = config['edges']
+STRONG_PEERS = config['strong_peers']
+WEAK_PEERS = config['weak_peers']
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
-DOWNLOAD_FOLDER_NAME = config['client']['download_folder_name']
 REDOWNLOAD_TIME = config['redownload_times']
 LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{config['client']['log_file']}", "a")
 
@@ -58,7 +52,6 @@ def update_server():
     """
     send updated directory to server
     """
-
     try:
         list_of_dir = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/")
         list_of_dir = '\n'.join(list_of_dir)
@@ -71,7 +64,6 @@ def folder_watch_daemon():
     """
     A daemon that updates the directory to the server whenever a new file is added or an file is deleted
     """
-
     update_server()
     current_file_directory = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/")
 
@@ -237,7 +229,7 @@ def parallelize_wait_for_file_download(peer_socket, files):
             log_this('Reading error: {}'.format(str(e)))
             return
 
-def wait_for_file_download(full_command):
+def wait_for_file_download(full_command,my_username):
     """
     Waiting for the file contents from the server    
     """
@@ -258,9 +250,9 @@ def wait_for_file_download(full_command):
     # NEED TO CALCULATE TARGET PORT
     # initialize connections with the other peer
     peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    peer_socket.connect((IP, PORT))
+    peer_socket.connect((IP, WEAK_PEERS[target_client]))
     peer_socket.setblocking(False)
-    peer_socket.send(username_header + meta + username)
+    send_message(peer_socket,'',my_username)
 
     # starts waiting for file download
     t = Thread(target=parallelize_wait_for_file_download, args=(peer_socket, files,))
@@ -277,7 +269,6 @@ def receive_command(peer_socket):
     Handles command receiving
     """
     try:
-
         # Receive our "header" containing command length, it's size is defined and constant
         command_header = peer_socket.recv(HEADER_LENGTH)
 
@@ -316,11 +307,7 @@ def send_files(peer_socket, peers, files):
                 line = fds[i].readline()
 
                 if not line:
-                    line = m.hexdigest().encode('utf-8')
-                    line_header = f"{len(line):<{HEADER_LENGTH}}".encode('utf-8')
-                    meta = f"{f'END {i}':<{META_LENGTH}}".encode('utf-8')
-                    peer_socket.send(line_header + meta + line)
-
+                    send_message(peer_socket,f'END {i}',m.hexdigest())
                     log_this(f"{files[i]} was sent to {peers[peer_socket]['data']}")
                     break
                 
@@ -329,25 +316,19 @@ def send_files(peer_socket, peers, files):
                 # update md5 checksum
                 m.update(line)
 
-                line_header = f"{len(line):<{HEADER_LENGTH}}".encode('utf-8')
-                meta = f"{f'{i}':<{META_LENGTH}}".encode('utf-8')
-                peer_socket.send(line_header + meta + line)
-
+                # sending each line to target peer socket
+                send_message(peer_socket, f'{i}', line)
             fds[i].close()
 
     except Exception as e:
         # client closed connection, violently or by user
-        error = str(e).encode('utf-8')
-        header = f"{len(error):<{HEADER_LENGTH}}".encode('utf-8')
-        meta = f"{'ERROR':<{META_LENGTH}}".encode('utf-8')
-        peer_socket.send(header + meta + error)
+        send_message(peer_socket, "ERROR", str(e))
         return False
 
 def server_daemon():
     """
     A daemon that listens for download requests from any other clients/peers 
     """
-
     weak_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     weak_peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     weak_peer_socket.bind((IP,SERVER_PORT))
@@ -434,8 +415,21 @@ if __name__ == "__main__":
     time.sleep(3)
 
     # Initialize connection with the strong peer
+    for edge in EDGES:
+        node_1 = [edge[0][0],int(edge[0][1])]
+        node_2 = [edge[1][0],int(edge[1][1])]
+        
+        if node_1[0] == "w" and node_2[0] == "s":
+            if node_1[1] == CLIENT_ID:
+                strong_peer_port = STRONG_PEERS[node_2[1]]['port']
+        
+        if node_1[0] == "s" and node_2[0] == "w":
+            if node_2[1] == CLIENT_ID:
+                strong_peer_port = STRONG_PEERS[node_1[1]]['port']
+            
+     
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    strong_peer_socket.connect((IP, STRONG_PEER_PORT))
+    strong_peer_socket.connect((IP, strong_peer_port))
     strong_peer_socket.setblocking(False)
     
     if len(sys.argv) == 1:
@@ -461,7 +455,7 @@ if __name__ == "__main__":
 
             if command == "download":
                 if len(parameters) != 0:
-                    wait_for_file_download(full_command)
+                    wait_for_file_download(full_command,my_username)
                 else:
                     log_this("ParameterError: Too less parameters")
 
@@ -507,7 +501,7 @@ if __name__ == "__main__":
 
             if command == "download":
                 if len(parameters) != 0:
-                    wait_for_file_download(full_command)
+                    wait_for_file_download(full_command,my_username)
                 else:
                     log_this("ParameterError: Too less parameters")
 

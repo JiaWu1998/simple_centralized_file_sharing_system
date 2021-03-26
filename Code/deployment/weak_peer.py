@@ -7,13 +7,14 @@ from _thread import *
 # get configurations 
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
 
-CLIENT_ID = int(os.path.basename(Path(os.path.realpath(__file__)).parent).split('_')[1])
-IP = config['clients'][CLIENT_ID]['ip_address']
-SERVER_PORT = config['clients'][CLIENT_ID]['port']
-DOWNLOAD_FOLDER_NAME = config['client'][CLIENT_ID]['download_folder_name']
 EDGES = config['edges']
 STRONG_PEERS = config['strong_peers']
 WEAK_PEERS = config['weak_peers']
+
+WEAK_PEER_ID = int(os.path.basename(Path(os.path.realpath(__file__)).parent).split('_')[1])
+IP = WEAK_PEERS[WEAK_PEER_ID]['ip_address']
+SERVER_PORT = WEAK_PEERS[WEAK_PEER_ID]['port']
+HOST_FOLDER = WEAK_PEERS[WEAK_PEER_ID]['host_folder']
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
 REDOWNLOAD_TIME = config['redownload_times']
@@ -53,9 +54,9 @@ def update_server():
     send updated directory to server
     """
     try:
-        list_of_dir = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/")
+        list_of_dir = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/")
         list_of_dir = '\n'.join(list_of_dir)
-        send_message(strong_peer_socket, str(CLIENT_ID) ,f"update_list {list_of_dir}")
+        send_message(strong_peer_socket, str(WEAK_PEER_ID) ,f"update_list {list_of_dir}")
     except:
         # client closed connection, violently or by user
         return False
@@ -65,10 +66,10 @@ def folder_watch_daemon():
     A daemon that updates the directory to the server whenever a new file is added or an file is deleted
     """
     update_server()
-    current_file_directory = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/")
+    current_file_directory = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/")
 
     while True:
-        temp = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/")
+        temp = os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/")
         if current_file_directory != temp:
             update_server()
             current_file_directory = temp
@@ -146,7 +147,7 @@ def parallelize_wait_for_file_download(peer_socket, files):
     log_this(f"Client sent command: {full_command}")
 
     # open files
-    fds = [open(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/{files[i]}",'w') for i in range(len(files))]
+    fds = [open(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/{files[i]}",'w') for i in range(len(files))]
     files_closed = 0
     redownload_count = 0
 
@@ -184,7 +185,7 @@ def parallelize_wait_for_file_download(peer_socket, files):
                 for i in range(len(files)):
                     fds[i].flush()
                     fds[i].close()
-                    os.remove(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/{files[i]}")
+                    os.remove(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/{files[i]}")
                 break
             
             # Flush and close and files is finished recieving
@@ -197,7 +198,7 @@ def parallelize_wait_for_file_download(peer_socket, files):
                 if m[int(meta[1])].hexdigest() != line:
                     log_this(f"Incorrect checksum for file : {files[int(meta[1])]}")
                     log_this(f"Deleting file : {files[int(meta[1])]}")
-                    os.remove(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/{files[int(meta[1])]}")
+                    os.remove(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/{files[int(meta[1])]}")
  
             # continue to write and flush to files
             else:
@@ -243,11 +244,10 @@ def wait_for_file_download(full_command,my_username):
         files = parameters[1:]
 
     # if the target client is itself, don't do anything
-    if target_client == CLIENT_ID:
+    if target_client == WEAK_PEER_ID:
         log_this("WrongClient: Target Client is Current Client.")
         return
 
-    # NEED TO CALCULATE TARGET PORT
     # initialize connections with the other peer
     peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     peer_socket.connect((IP, WEAK_PEERS[target_client]))
@@ -275,16 +275,20 @@ def receive_command(peer_socket):
         # If we received no data, client gracefully closed a connection, for example using socket.close() or socket.shutdown(socket.SHUT_RDWR)
         if not len(command_header):
             return False
+        
+        # Convert header to int value
+        command_length = int(command_header.decode('utf-8').strip())
 
         # Get meta data
         meta = peer_socket.recv(META_LENGTH)
         meta = meta.decode('utf-8').strip()
 
-        # Convert header to int value
-        command_length = int(command_header.decode('utf-8').strip())
+        # Get data 
+        data = peer_socket.recv(command_length)
+        data = data.decode('utf-8')
 
         # Return an object of command header and command data
-        return {'header': command_header, 'meta': meta, 'data': peer_socket.recv(command_length)}
+        return {'header': command_header, 'meta': meta, 'data': data}
 
     except:
         # client closed connection, violently or by user
@@ -295,7 +299,7 @@ def send_files(peer_socket, peers, files):
     Sends file to the peer
     """
     try:
-        fds = [open(f"{os.path.dirname(os.path.abspath(__file__))}/{DOWNLOAD_FOLDER_NAME}/{files[i]}",'r') for i in range(len(files))]
+        fds = [open(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/{files[i]}",'r') for i in range(len(files))]
         
         for i in range(len(files)):
             # using md5 checksum
@@ -329,6 +333,8 @@ def server_daemon():
     """
     A daemon that listens for download requests from any other clients/peers 
     """
+
+    # Create a server socket
     weak_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     weak_peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     weak_peer_socket.bind((IP,SERVER_PORT))
@@ -389,8 +395,10 @@ def server_daemon():
                 user = peers[notified_socket]
 
                 # Get command
-                command_msg = command["data"].decode("utf-8")
-                command_msg = command_msg.split(' ')
+                command_msg = command["data"].split(' ')
+
+                # Get metadata
+                command_meta = command["meta"]
 
                 # logging
                 log_msg = f'{datetime.datetime.now()} Recieved command from {user["data"].decode("utf-8")}: {command_msg[0]}\n'
@@ -399,7 +407,8 @@ def server_daemon():
                 # Handle commands
                 if command_msg[0] == 'download':
                     start_new_thread(send_files, (notified_socket,peers,command_msg[1:],))
-            
+                    log_this(f"Start Downloading Files: {command_msg[1:]}")
+
             # handle some socket exceptions just in case
             for notified_socket in exception_sockets:
                 
@@ -420,11 +429,11 @@ if __name__ == "__main__":
         node_2 = [edge[1][0],int(edge[1][1])]
         
         if node_1[0] == "w" and node_2[0] == "s":
-            if node_1[1] == CLIENT_ID:
+            if node_1[1] == WEAK_PEER_ID:
                 strong_peer_port = STRONG_PEERS[node_2[1]]['port']
         
         if node_1[0] == "s" and node_2[0] == "w":
-            if node_2[1] == CLIENT_ID:
+            if node_2[1] == WEAK_PEER_ID:
                 strong_peer_port = STRONG_PEERS[node_1[1]]['port']
             
      
@@ -436,8 +445,8 @@ if __name__ == "__main__":
         # Manual Mode of Client Interface
 
         # create username to connect to the server
-        my_username = input("Username: ")
-        send_message(strong_peer_socket,'',my_username)
+        my_username = f"weak_peer_{WEAK_PEER_ID}"
+        send_message(strong_peer_socket,'WEAK',my_username)
 
         # Start folder watch daemon to automatically update to server
         start_new_thread(folder_watch_daemon,())
@@ -469,7 +478,7 @@ if __name__ == "__main__":
                 help()
             
             elif command == "quit":
-                send_message(strong_peer_socket,str(CLIENT_ID),"unregister")
+                send_message(strong_peer_socket,str(WEAK_PEER_ID),"unregister")
                 log_this(f"Client sent command: {full_command}")
                 LOG.close()
                 sys.exit()
@@ -478,18 +487,18 @@ if __name__ == "__main__":
         # Automatic Mode of Client Interface
 
         #Args
-        #python client.py username command1 command2 ... commandn
+        #python client.py command1 command2 ... commandn
 
         # create username to connect to the server
-        my_username = sys.argv[1]
-        send_message(strong_peer_socket,'',my_username)
+        my_username = f"weak_peer_{WEAK_PEER_ID}"
+        send_message(strong_peer_socket,'WEAK',my_username)
 
         # Start folder watch daemon to automatically update to server
         start_new_thread(folder_watch_daemon,())
         time.sleep(3)
         
         # Does Client Things
-        for i in sys.argv[2:]:
+        for i in sys.argv[1:]:
 
             # give time to process command
             time.sleep(1)
@@ -515,7 +524,7 @@ if __name__ == "__main__":
                 help()
             
             elif command == "quit":
-                send_message(strong_peer_socket,str(CLIENT_ID),"unregister")
+                send_message(strong_peer_socket,str(WEAK_PEER_ID),"unregister")
                 log_this(f"Client sent command: {full_command}")
                 LOG.close()
                 sys.exit()

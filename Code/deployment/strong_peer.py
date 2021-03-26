@@ -4,34 +4,55 @@ import os
 import datetime
 from _thread import *
 import json
+from pathlib import Path
 import hashlib
-
 
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
 
-IP = config['server']['ip_address']
+EDGES = config['edges']
+STRONG_PEERS = config['strong_peers']
+WEAK_PEERS = config['weak_peers']
+
+STRONG_PEER_ID = int(os.path.basename(Path(os.path.realpath(__file__)).parent).split('_')[1])
+IP = STRONG_PEERS[STRONG_PEER_ID]['ip_address']
+SERVER_PORT = STRONG_PEERS[STRONG_PEER_ID]['port']
+HOST_FOLDER = STRONG_PEERS[STRONG_PEER_ID]['host_folder']
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
-THREAD_PORTS = config['server']['ports']
-WATCH_FOLDER_NAME = config['server']['watch_folder_name']
 LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{config['server']['log_file']}", "a")
-CLIENT_FILES_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/{WATCH_FOLDER_NAME}/client_files.json"
-CLIENT_FILES = open(CLIENT_FILES_DIR, "w+")
-json_client_files = json.load(CLIENT_FILES) if os.stat(CLIENT_FILES_DIR).st_size != 0 else json.loads(json.dumps({}))
 
+LOCAL_LIBRARY_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/client_files.json"
+LOCAL_WEAK_PEER_FILES = open(LOCAL_LIBRARY_DIR, "w+")
+json_peer_files = json.load(LOCAL_WEAK_PEER_FILES) if os.stat(LOCAL_LIBRARY_DIR).st_size != 0 else json.loads(json.dumps({}))
 
-# Logs messages
+#################################################################HELPER FUNCTIONS###################################################################
+
 def log_this(msg):
+    """
+    Logs a message
+    """
     print(msg)
     LOG.write(f"{datetime.datetime.now()} {msg}\n")
     LOG.flush()
 
-# Handles command receiving
+def send_message(target_socket, metadata, message):
+    """
+    Send a message to a target socket with meta data
+    """
+    header = f"{len(message):<{HEADER_LENGTH}}".encode('utf-8')
+    metadata = f"{metadata:<{META_LENGTH}}".encode('utf-8')
+    message = message.encode('utf-8')
+    target_socket.send(header + metadata + message)
+
+#################################################################HELPER FUNCTIONS###################################################################
+
+###################################################################SERVER RELATED###################################################################
 def receive_command(client_socket):
-
+    """
+    Handles command receiving
+    """
     try:
-
         # Receive our "header" containing command length, it's size is defined and constant
         command_header = client_socket.recv(HEADER_LENGTH)
 
@@ -39,71 +60,88 @@ def receive_command(client_socket):
         if not len(command_header):
             return False
 
+        # Convert header to int value
+        command_length = int(command_header.decode('utf-8').strip())
+
         # Get meta data
         meta = client_socket.recv(META_LENGTH)
         meta = meta.decode('utf-8').strip()
 
-        # Convert header to int value
-        command_length = int(command_header.decode('utf-8').strip())
+        # Get data
+        data = client_socket.recv(command_length)
+        data = data.decode('utf-8')
 
         # Return an object of command header and command data
-        return {'header': command_header, 'meta': meta, 'data': client_socket.recv(command_length)}
+        return {'header': command_header, 'meta': meta, 'data': data}
 
     except:
         # client closed connection, violently or by user
         return False
 
-# Sends file directory to client
-def send_file_directory(client_socket):
+def send_file_directory(weak_peer_id):
+    """
+    Sends file directory to client
+    """
     try:
-        list_of_dir = json.dumps(json_client_files).encode('utf-8')
-        list_of_dir_header = f"{len(list_of_dir):<{HEADER_LENGTH}}".encode('utf-8')
-        meta = f"{'':<{META_LENGTH}}".encode('utf-8')
-        client_socket.send(list_of_dir_header + meta + list_of_dir)
+        send_message(weak_peer_id, "", json.dumps(json_peer_files))
 
     except:
         # client closed connection, violently or by user
         return False
 
-# Updates file directory
-def update_file_directory(client_id, dir_list):
-    json_client_files[client_id] = dir_list.split('\n')
+def update_file_directory(weak_peer_id, dir_list):
+    """
+    Updates local weak peer library 
+    """
+    json_peer_files[weak_peer_id] = dir_list.split('\n')
 
     # clear file and rewrite
-    CLIENT_FILES.truncate(0)
-    CLIENT_FILES.write(f"{json.dumps(json_client_files)}")
-    CLIENT_FILES.flush()
- 
+    LOCAL_WEAK_PEER_FILES.truncate(0)
+    LOCAL_WEAK_PEER_FILES.write(f"{json.dumps(json_peer_files)}")
+    LOCAL_WEAK_PEER_FILES.flush()
 
-def unregister_client(client_id):
-    del json_client_files[client_id]
+def unregister_client(weak_peer_id):
+    """
+    Unregister weak peer from library
+    """
+    del json_peer_files[weak_peer_id]
 
     # clear file and rewrite
-    CLIENT_FILES.truncate(0)
-    CLIENT_FILES.write(f"{json.dumps(json_client_files)}")
-    CLIENT_FILES.flush()
+    LOCAL_WEAK_PEER_FILES.truncate(0)
+    LOCAL_WEAK_PEER_FILES.write(f"{json.dumps(json_peer_files)}")
+    LOCAL_WEAK_PEER_FILES.flush()
 
-
+###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
-    # Create list of server sockets
-    server_sockets = []
+    #Initialize connections with other super peers
+    other_strong_peers = []
 
-    for i in range(len(THREAD_PORTS)):
-        temp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        temp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        temp.bind((IP, THREAD_PORTS[i]))
-        temp.listen()
-        server_sockets.append(temp)
+    for edge in EDGES:
+        node_1 = [edge[0][0],int(edge[0][1])]
+        node_2 = [edge[1][0],int(edge[1][1])]
+
+        if node_1[0] == "s" and node_2[0] == "s":
+            if node_1[1] == STRONG_PEER_ID or node_2[1] == STRONG_PEER_ID:
+                temp_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                strong_peer_port =  STRONG_PEERS[node_2[1]]['port'] if node_1[1] == STRONG_PEER_ID else STRONG_PEERS[node_1[1]]['port']
+                temp_connection.connect((IP,strong_peer_port))
+                temp_connection.setblocking(False)
+                other_strong_peers.append(temp_connection)
+    
+    # Create a server socket
+    strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    strong_peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    strong_peer_socket.bind((IP, SERVER_PORT))
+    strong_peer_socket.listen()
 
     # Create list of sockets for select.select()
-    sockets_list = [i for i in server_sockets]
+    sockets_list = [strong_peer_socket]
 
     # List of connected clients - socket as a key, user header and name as data
     clients = {}
 
-    for port in THREAD_PORTS:
-        log_this(f'Listening for connections on {IP}:{port}...')
+    log_this(f'Listening for connections on {IP}:{SERVER_PORT}...')
 
     # Does Server Things
     while True:
@@ -112,9 +150,9 @@ if __name__ == "__main__":
         for notified_socket in read_sockets:
 
             # If notified socket is a server socket - new connection, accept it
-            if notified_socket in server_sockets:
+            if notified_socket == strong_peer_socket:
 
-                client_socket, client_address = server_sockets[server_sockets.index(notified_socket)].accept()
+                client_socket, client_address = strong_peer_socket[strong_peer_socket.index(notified_socket)].accept()
 
                 # Client should send his name right away, receive it
                 user = receive_command(client_socket)
@@ -153,25 +191,32 @@ if __name__ == "__main__":
                 user = clients[notified_socket]
 
                 # Get command
-                command_msg = command["data"].decode("utf-8")
-                command_msg = command_msg.split(' ')
+                command_msg = command["data"].split(' ')
+                
+                # Get metadata
+                command_meta = command["meta"]
 
                 # logging
                 log_msg = f'{datetime.datetime.now()} Received command from {user["data"].decode("utf-8")}: {command_msg[0]}'
                 log_this(log_msg)
 
-                # Handle commands
-                if command_msg[0] == 'get_files_list':
-                    start_new_thread(send_file_directory, (notified_socket,))
-                    log_this(f'Sent file list to {user["data"].decode("utf-8")}')
+                # Handle commands from weak peers
+                if user["meta"] == "WEAK":
 
-                elif command_msg[0] == 'update_list':
-                    start_new_thread(update_file_directory, (int(command['meta']),command_msg[1],))
-                    log_this(f"Update directory for client_{int(command['meta'])}")
+                    if command_msg[0] == 'get_files_list':
+                        start_new_thread(send_file_directory, (notified_socket,))
+                        log_this(f'Sent file list to {user["data"].decode("utf-8")}')
 
-                elif command_msg[0] == 'unregister':
-                    start_new_thread(unregister_client, (int(command['meta']),))
-                    log_this(f"Unregister client_{int(command['meta'])}")
+                    elif command_msg[0] == 'update_list':
+                        start_new_thread(update_file_directory, (int(command_meta),command_msg[1],))
+                        log_this(f"Update directory for client_{int(command_meta)}")
+
+                    elif command_msg[0] == 'unregister':
+                        start_new_thread(unregister_client, (int(command_meta),))
+                        log_this(f"Unregister client_{int(command_meta)}")
+
+                if user["meta"] == "STRONG":
+                    pass
 
         # handle some socket exceptions just in case
         for notified_socket in exception_sockets:

@@ -18,6 +18,36 @@
             "port": 1236,
             "log_file": "server_log.txt",
             "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1235,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1235,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1235,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1235,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1235,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
         }
     ],
 
@@ -53,7 +83,21 @@
         ["s0","w1"],
         ["s1","w2"],
         ["s1","w3"],
-        ["s0","s1"]
+        ["s0","s1"],
+
+        ["s0","s3"],
+        ["s0","s2"],
+        ["s1","s2"],
+        ["s1","s4"],
+        ["s2","s3"],
+        ["s2","s4"],
+        ["s3","s5"],
+        ["s4","s5"],
+        ["s5","s6"]
+
+
+
+
     ]
 
 }

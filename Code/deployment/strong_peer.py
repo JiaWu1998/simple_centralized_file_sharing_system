@@ -45,6 +45,67 @@ def send_message(target_socket, metadata, message):
     message = message.encode('utf-8')
     target_socket.send(header + metadata + message)
 
+def find(parent, i):
+    """
+    A utility function to find set of an element i. It uses path compression.
+    """
+    if parent[i] == i:
+        return i
+    return find(parent, parent[i])
+
+def union(parent, rank, x, y):
+    """
+    A function that does union of two sets of x and y. uses union by rank
+    """
+    xroot = find(parent, x)
+    yroot = find(parent, y)
+
+    if rank[xroot] < rank[yroot]:
+        parent[xroot] = yroot
+    elif rank[xroot] > rank[yroot]:
+        parent[yroot] = xroot
+    else:
+        parent[yroot] = xroot
+
+def create_span_tree():
+    """
+    Creates minimum spannning tree with kruskals minimum spanning tree algorithm
+    """
+    spanning_tree = []
+
+    # Creates the super peer graph
+    super_peer_graph = []
+
+    for i in range(len(EDGES)):
+        if EDGES[i][0][0] == "s" and EDGES[i][1][0] == "s":
+            super_peer_graph.append([int(EDGES[i][0][1]),int(EDGES[i][1][1]), i])
+    
+    # index variable for sorted edges
+    i = 0
+
+    # index variable for spanning tree array
+    e = 0
+
+    parent = []
+    rank = []
+
+    for node in range(len(STRONG_PEERS)):
+        parent.append(node)
+        rank.append(0)
+    
+    while e < len(STRONG_PEERS) - 1:
+        u, v, w  = super_peer_graph[i]
+        i += 1
+        x = find(parent, u)
+        y = find(parent, v)
+
+        if x != y:
+            e = e + 1
+            spanning_tree.append([u,v,w])
+            union(parent, rank, x, y)
+    
+    return spanning_tree
+
 #################################################################HELPER FUNCTIONS###################################################################
 
 ###################################################################SERVER RELATED###################################################################

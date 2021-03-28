@@ -6,6 +6,9 @@ from _thread import *
 import json
 from pathlib import Path
 import hashlib
+from collections import defaultdict
+import random
+import sys
 
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
@@ -26,6 +29,13 @@ LOCAL_LIBRARY_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}
 LOCAL_WEAK_PEER_FILES = open(LOCAL_LIBRARY_DIR, "w+")
 json_peer_files = json.load(LOCAL_WEAK_PEER_FILES) if os.stat(LOCAL_LIBRARY_DIR).st_size != 0 else json.loads(json.dumps({}))
 
+global_file_list = json_peer_files
+
+strong_peer_graph = None
+neighbor_strong_peer_sockets = {}
+
+query_id = None
+
 #################################################################HELPER FUNCTIONS###################################################################
 
 def log_this(msg):
@@ -45,66 +55,48 @@ def send_message(target_socket, metadata, message):
     message = message.encode('utf-8')
     target_socket.send(header + metadata + message)
 
-def find(parent, i):
+class Graph:
     """
-    A utility function to find set of an element i. It uses path compression.
+    A Graph class for super peers
     """
-    if parent[i] == i:
-        return i
-    return find(parent, parent[i])
+    def __init__(self,vertices):
+        self.V = vertices 
+        self.V_org = vertices
+        self.graph = defaultdict(list) 
+        self.shortest_path = []
+   
+    def addEdge(self,u,v,w):
+        if w == 1:
+            self.graph[u].append(v)
+        else:    
+            self.graph[u].append(self.V)
+            self.graph[self.V].append(v)
+            self.V = self.V + 1
 
-def union(parent, rank, x, y):
-    """
-    A function that does union of two sets of x and y. uses union by rank
-    """
-    xroot = find(parent, x)
-    yroot = find(parent, y)
+    def printPath(self, parent, j):
+        if parent[j] == -1 and j < self.V_org :
+            self.shortest_path.append(j)
+            return self.shortest_path
+        self.printPath(parent , parent[j])
+        if j < self.V_org :
+            self.shortest_path.append(j)
+        return self.shortest_path
 
-    if rank[xroot] < rank[yroot]:
-        parent[xroot] = yroot
-    elif rank[xroot] > rank[yroot]:
-        parent[yroot] = xroot
-    else:
-        parent[yroot] = xroot
-
-def create_span_tree():
-    """
-    Creates minimum spannning tree with kruskals minimum spanning tree algorithm
-    """
-    spanning_tree = []
-
-    # Creates the super peer graph
-    super_peer_graph = []
-
-    for i in range(len(EDGES)):
-        if EDGES[i][0][0] == "s" and EDGES[i][1][0] == "s":
-            super_peer_graph.append([int(EDGES[i][0][1]),int(EDGES[i][1][1]), i])
-    
-    # index variable for sorted edges
-    i = 0
-
-    # index variable for spanning tree array
-    e = 0
-
-    parent = []
-    rank = []
-
-    for node in range(len(STRONG_PEERS)):
-        parent.append(node)
-        rank.append(0)
-    
-    while e < len(STRONG_PEERS) - 1:
-        u, v, w  = super_peer_graph[i]
-        i += 1
-        x = find(parent, u)
-        y = find(parent, v)
-
-        if x != y:
-            e = e + 1
-            spanning_tree.append([u,v,w])
-            union(parent, rank, x, y)
-    
-    return spanning_tree
+    def findShortestPath(self,src, dest):
+        visited =[False]*(self.V)
+        parent =[-1]*(self.V)
+        queue=[]
+        queue.append(src)
+        visited[src] = True
+        while queue :
+            s = queue.pop(0)
+            if s == dest:
+                return self.printPath(parent, s)
+            for i in self.graph[s]:
+                if visited[i] == False:
+                    queue.append(i)
+                    visited[i] = True
+                    parent[i] = s
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -139,13 +131,38 @@ def receive_command(client_socket):
         # client closed connection, violently or by user
         return False
 
-def send_file_directory(weak_peer_id):
+def passing_message(target, message):
     """
-    Sends file directory to client
+    passes message to the next node in the path to the target
+    """
+    shortest_path = strong_peer_graph.findShortestPath(STRONG_PEER_ID,target)
+    next_node = shortest_path[1]
+
+    send_message(neighbor_strong_peer_sockets[next_node],'', message)
+
+def update_global_file_directory():
+    """
+    Broadcast query to all strong peers
+    """
+    
+    query_id = random.randint(0,sys.maxsize)
+
+    for i in range(len(STRONG_PEERS)):
+        if i != STRONG_PEER_ID:
+            passing_message(i, f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} DATA:file_list") 
+
+    # WAIT FOR ARRIVE and update global file list
+
+
+def send_file_directory(client_socket, target_type):
+    """
+    Sends file directory to client by id or passes a message to another peer
     """
     try:
-        send_message(weak_peer_id, "", json.dumps(json_peer_files))
-
+        if target_type == "WEAK":
+            send_message(client_socket, "", json.dumps(global_file_list))
+        elif target_type == "STRONG":
+            send_message(client_socket, "", f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} DATA:{json.dumps(json_peer_files)}")
     except:
         # client closed connection, violently or by user
         return False
@@ -175,9 +192,13 @@ def unregister_client(weak_peer_id):
 ###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
-    #Initialize connections with other super peers
-    other_strong_peers = []
+    # Initialize super peer graph
+    strong_peer_graph = Graph(len(STRONG_PEERS))
+    for i in range(len(EDGES)):
+        if EDGES[i][0][0] == "s" and EDGES[i][1][0] == "s":
+            strong_peer_graph.addEdge(int(EDGES[i][0][1]),int(EDGES[i][1][1]),1)
 
+    #Initialize connections with other NEIGHBOR super peers
     for edge in EDGES:
         node_1 = [edge[0][0],int(edge[0][1])]
         node_2 = [edge[1][0],int(edge[1][1])]
@@ -188,7 +209,9 @@ if __name__ == "__main__":
                 strong_peer_port =  STRONG_PEERS[node_2[1]]['port'] if node_1[1] == STRONG_PEER_ID else STRONG_PEERS[node_1[1]]['port']
                 temp_connection.connect((IP,strong_peer_port))
                 temp_connection.setblocking(False)
-                other_strong_peers.append(temp_connection)
+                send_message(temp_connection, 'STRONG', f"strong_peer_{STRONG_PEER_ID}")
+                other_strong_peer_id =  node_2[1] if node_1[1] == STRONG_PEER_ID else node_1[1]
+                neighbor_strong_peer_sockets[other_strong_peer_id] = temp_connection
     
     # Create a server socket
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -277,7 +300,14 @@ if __name__ == "__main__":
                         log_this(f"Unregister client_{int(command_meta)}")
 
                 if user["meta"] == "STRONG":
-                    pass
+                    
+                    # if the query have hit the target
+                    if command_msg[3] == f"TO:{STRONG_PEER_ID}":
+                        pass
+
+                    # if not, keep passing_message
+                    else:
+                        start_new_thread(passing_message,(int(command_msg[3].split(':')[1]),command["data"],))
 
         # handle some socket exceptions just in case
         for notified_socket in exception_sockets:

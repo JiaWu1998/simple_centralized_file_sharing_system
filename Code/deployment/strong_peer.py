@@ -9,6 +9,8 @@ import hashlib
 from collections import defaultdict
 import random
 import sys
+import time
+import errno
 
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
@@ -20,7 +22,9 @@ WEAK_PEERS = config['weak_peers']
 STRONG_PEER_ID = int(os.path.basename(Path(os.path.realpath(__file__)).parent).split('_')[1])
 IP = STRONG_PEERS[STRONG_PEER_ID]['ip_address']
 SERVER_PORT = STRONG_PEERS[STRONG_PEER_ID]['port']
+
 HOST_FOLDER = STRONG_PEERS[STRONG_PEER_ID]['host_folder']
+
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
 LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{config['server']['log_file']}", "a")
@@ -35,6 +39,8 @@ strong_peer_graph = None
 neighbor_strong_peer_sockets = {}
 
 query_id = None
+
+strong_peer_query_counter = 0
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -140,19 +146,70 @@ def passing_message(target, message):
 
     send_message(neighbor_strong_peer_sockets[next_node],'', message)
 
-def update_global_file_directory():
+def update_global_file_directory(client_socket, target_type):
     """
-    Broadcast query to all strong peers
+    Broadcast query to all strong peers and also retrieve all returns on the orginal strong peer
     """
     
-    query_id = random.randint(0,sys.maxsize)
+    if target_type == "WEAK":
+        query_id = random.randint(0,sys.maxsize)
 
-    for i in range(len(STRONG_PEERS)):
-        if i != STRONG_PEER_ID:
-            passing_message(i, f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} DATA:file_list") 
+        for i in range(len(STRONG_PEERS)):
+            if i != STRONG_PEER_ID:
+                passing_message(i, f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:") 
 
-    # WAIT FOR ARRIVE and update global file list
+        # WAIT FOR ARRIVE and update global file list
+        while strong_peer_query_counter < len(STRONG_PEERS):
+            time.sleep(1)
+        
+        # reset the counter
+        strong_peer_query_counter = 0
+        
+    elif target_type == "STRONG":
+        
+        # Keep trying to recieve until client recieved returns from the server
+        while True:
+            try:
+                # Receive our "header" containing username length, it's size is defined and constant
+                header = client_socket.recv(HEADER_LENGTH)
 
+                # If we received no data, server gracefully closed a connection, for example using socket.close() or socket.shutdown(socket.SHUT_RDWR)
+                if not len(header):
+                    log_this(f"Connection closed by the server")
+                    return
+
+                # Convert header to int value
+                header = int(header.decode('utf-8').strip())
+
+                # Get meta data
+                meta = client_socket.recv(META_LENGTH)
+                meta = meta.decode('utf-8').strip()
+
+                # Receive and decode msg
+                dir_list = client_socket.recv(header).decode('utf-8')
+                dir_list = json.loads(dir_list)
+
+                # Print List
+                for client in dir_list:
+                    global_file_list[client] = dir_list[client]
+
+                # Break out of the loop when list is recieved
+                strong_peer_query_counter += 1                
+                break
+
+            except IOError as e:
+                # Any other exception - something happened, exit
+                if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
+                    log_this('Reading error: {}'.format(str(e)))
+                    return
+
+                # We just did not receive anything
+                continue
+
+            except Exception as e:
+                # Any other exception - something happened, exit
+                log_this('Reading error: '.format(str(e)))
+                return
 
 def send_file_directory(client_socket, target_type):
     """
@@ -160,9 +217,10 @@ def send_file_directory(client_socket, target_type):
     """
     try:
         if target_type == "WEAK":
+            update_global_file_directory()
             send_message(client_socket, "", json.dumps(global_file_list))
         elif target_type == "STRONG":
-            send_message(client_socket, "", f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} DATA:{json.dumps(json_peer_files)}")
+            passing_message(i, f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list_return DATA:{json.dumps(json_peer_files)}")
     except:
         # client closed connection, violently or by user
         return False
@@ -288,7 +346,7 @@ if __name__ == "__main__":
                 if user["meta"] == "WEAK":
 
                     if command_msg[0] == 'get_files_list':
-                        start_new_thread(send_file_directory, (notified_socket,))
+                        start_new_thread(send_file_directory, (notified_socket,user["meta"]))
                         log_this(f'Sent file list to {user["data"].decode("utf-8")}')
 
                     elif command_msg[0] == 'update_list':
@@ -302,12 +360,15 @@ if __name__ == "__main__":
                 if user["meta"] == "STRONG":
                     
                     # if the query have hit the target
-                    if command_msg[3] == f"TO:{STRONG_PEER_ID}":
-                        pass
+                    if command_msg[2] == f"TO:{STRONG_PEER_ID}":
+                        if command_msg[3] == "QUERY:file_list":
+                            start_new_thread(send_file_directory, (notified_socket,user["meta"],))
+                        elif command_msg[3] == "QUERY:file_list_return":
+                            start_new_thread(update_global_file_directory, (notified_socket,command_msg[4].split(':')[1]))
 
                     # if not, keep passing_message
                     else:
-                        start_new_thread(passing_message,(int(command_msg[3].split(':')[1]),command["data"],))
+                        start_new_thread(passing_message,(int(command_msg[2].split(':')[1]),command["data"],))
 
         # handle some socket exceptions just in case
         for notified_socket in exception_sockets:

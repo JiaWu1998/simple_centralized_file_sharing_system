@@ -14,11 +14,16 @@ WEAK_PEERS = config['weak_peers']
 WEAK_PEER_ID = int(os.path.basename(Path(os.path.realpath(__file__)).parent).split('_')[1])
 IP = WEAK_PEERS[WEAK_PEER_ID]['ip_address']
 SERVER_PORT = WEAK_PEERS[WEAK_PEER_ID]['port']
+
 HOST_FOLDER = WEAK_PEERS[WEAK_PEER_ID]['host_folder']
+
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
 REDOWNLOAD_TIME = config['redownload_times']
 LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{config['client']['log_file']}", "a")
+
+
+
 
 #################################################################HELPER FUNCTIONS###################################################################
 def log_this(message):
@@ -74,25 +79,12 @@ def folder_watch_daemon():
             update_server()
             current_file_directory = temp
 
-#################################################################HELPER FUNCTIONS###################################################################
-
-
-###################################################################CLIENT RELATED###################################################################
-
-def wait_for_list(full_command):
-    """
-    Waiting for a list of directories from the server
-    """
-    start = time.time()
-
-    send_message(strong_peer_socket, '', full_command)
-    log_this(f"Weak peer sent command to Strong Peer: {full_command}")
-    
+def wait_for_result(listening_socket):
     # Keep trying to recieve until client recieved returns from the server
     while True:
         try:
             # Receive our "header" containing username length, it's size is defined and constant
-            header = strong_peer_socket.recv(HEADER_LENGTH)
+            header = listening_socket.recv(HEADER_LENGTH)
 
             # If we received no data, server gracefully closed a connection, for example using socket.close() or socket.shutdown(socket.SHUT_RDWR)
             if not len(header):
@@ -103,22 +95,11 @@ def wait_for_list(full_command):
             header = int(header.decode('utf-8').strip())
 
             # Get meta data
-            meta = strong_peer_socket.recv(META_LENGTH)
+            meta = listening_socket.recv(META_LENGTH)
             meta = meta.decode('utf-8').strip()
 
             # Receive and decode msg
-            dir_list = strong_peer_socket.recv(header).decode('utf-8')
-            dir_list = json.loads(dir_list)
-
-            # Print List
-            for client in dir_list:
-                print(f"Weak Peer with id {client}:")
-                for file in dir_list[client]:
-                    print(f"\t{file}")
-            
-            end = time.time()
-            
-            log_this(f"FileQueryComplete: {(end-start)*1000} ms.")
+            data = listening_socket.recv(header).decode('utf-8')
 
             # Break out of the loop when list is recieved                
             break
@@ -136,6 +117,32 @@ def wait_for_list(full_command):
             # Any other exception - something happened, exit
             log_this('Reading error: '.format(str(e)))
             return
+
+    return {"meta":meta, "data":data}
+
+#################################################################HELPER FUNCTIONS###################################################################
+
+
+###################################################################CLIENT RELATED###################################################################
+
+def wait_for_list(full_command):
+    """
+    Waiting for a list of directories from the server
+    """
+    start = time.time()
+
+    send_message(strong_peer_socket, '', full_command)
+    log_this(f"Weak peer sent command to Strong Peer: {full_command}")
+    
+    result = wait_for_result(strong_peer_socket)
+
+    dir_list = json.loads(result["data"])
+
+    # Print List
+    for client in dir_list:
+        print(f"Weak Peer with id {client}:")
+        for file in dir_list[client]:
+            print(f"\t{file}")
 
 def parallelize_wait_for_file_download(peer_socket, files):
     """
@@ -230,18 +237,11 @@ def parallelize_wait_for_file_download(peer_socket, files):
             log_this('Reading error: {}'.format(str(e)))
             return
 
-def wait_for_file_download(full_command,my_username):
+def wait_for_file_download(full_command,target_client, my_username):
     """
     Waiting for the file contents from the server    
     """
     parameters = full_command.split(' ')[1:]
-
-    if len(parameters) <= 1:
-        log_this("ParameterError: Too less parameters")
-        return
-    else:
-        target_client = int(parameters[0])
-        files = parameters[1:]
 
     # if the target client is itself, don't do anything
     if target_client == WEAK_PEER_ID:
@@ -249,16 +249,30 @@ def wait_for_file_download(full_command,my_username):
         return
 
     # initialize connections with the other peer
-    peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    peer_socket.connect((IP, WEAK_PEERS[target_client]))
-    peer_socket.setblocking(False)
-    send_message(peer_socket,'',my_username)
+    weak_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    weak_peer_socket.connect((WEAK_PEERS[target_client]["ip_address"], WEAK_PEERS[target_client]["port"]))
+    weak_peer_socket.setblocking(False)
+    send_message(weak_peer_socket,'',my_username)
 
     # starts waiting for file download
-    t = Thread(target=parallelize_wait_for_file_download, args=(peer_socket, files,))
+    t = Thread(target=parallelize_wait_for_file_download, args=(weak_peer_socket, parameters,))
     t.start()
 
     return
+
+def find_target(file1):
+    """
+    Ask strong peer to find a target
+    """
+
+    # Encode command to bytes, prepare header and convert to bytes, like for username above, then send
+    send_message(strong_peer_socket,'',f"find_target {file1}")
+    log_this(f"Client sent command: find_target")
+
+    result = wait_for_result(strong_peer_socket)
+
+    return int(result["data"])
+
 
 ###################################################################CLIENT RELATED###################################################################
 
@@ -331,7 +345,7 @@ def send_files(peer_socket, peers, files):
 
 def server_daemon():
     """
-    A daemon that listens for download requests from any other clients/peers 
+    A daemon that listens for download requests from any other weak peers 
     """
 
     # Create a server socket
@@ -383,7 +397,7 @@ def server_daemon():
 
                 # If False, client disconnected, cleanup
                 if command is False:
-                    log_msg = '{} Closed connection from: {}'.format(datetime.datetime.now(), peers[notified_socket]['data'].decode('utf-8'))
+                    log_msg = 'Closed connection from: {}'.format(peers[notified_socket]['data'].decode('utf-8'))
                     log_this(log_msg)
 
                     # remove connections
@@ -401,7 +415,7 @@ def server_daemon():
                 command_meta = command["meta"]
 
                 # logging
-                log_msg = f'{datetime.datetime.now()} Recieved command from {user["data"].decode("utf-8")}: {command_msg[0]}\n'
+                log_msg = f'Recieved command from {user["data"].decode("utf-8")}: {command_msg[0]}\n'
                 log_this(log_msg)
 
                 # Handle commands
@@ -425,20 +439,22 @@ if __name__ == "__main__":
 
     # Initialize connection with the strong peer
     for edge in EDGES:
-        node_1 = [edge[0][0],int(edge[0][1])]
-        node_2 = [edge[1][0],int(edge[1][1])]
+        node_1 = [edge[0][0],int(edge[0][1:])]
+        node_2 = [edge[1][0],int(edge[1][1:])]
         
         if node_1[0] == "w" and node_2[0] == "s":
             if node_1[1] == WEAK_PEER_ID:
+                strong_peer_ip = STRONG_PEERS[node_2[1]]['ip_address']
                 strong_peer_port = STRONG_PEERS[node_2[1]]['port']
         
         if node_1[0] == "s" and node_2[0] == "w":
             if node_2[1] == WEAK_PEER_ID:
+                strong_peer_ip = STRONG_PEERS[node_2[1]]['ip_address']
                 strong_peer_port = STRONG_PEERS[node_1[1]]['port']
             
      
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    strong_peer_socket.connect((IP, strong_peer_port))
+    strong_peer_socket.connect((strong_peer_ip, strong_peer_port))
     strong_peer_socket.setblocking(False)
     
     if len(sys.argv) == 1:
@@ -464,7 +480,8 @@ if __name__ == "__main__":
 
             if command == "download":
                 if len(parameters) != 0:
-                    wait_for_file_download(full_command,my_username)
+                    target_client = find_target(parameters[0])
+                    wait_for_file_download(full_command,target_client,my_username)
                 else:
                     log_this("ParameterError: Too less parameters")
 

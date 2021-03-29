@@ -12,6 +12,7 @@ import random
 import sys
 import time
 import errno
+import copy
 
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
@@ -32,7 +33,9 @@ LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{STRONG_PEERS[STRONG_P
 
 LOCAL_LIBRARY_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/client_files.json"
 LOCAL_WEAK_PEER_FILES = open(LOCAL_LIBRARY_DIR, "w+")
-json_peer_files = json.load(LOCAL_WEAK_PEER_FILES) if os.stat(LOCAL_LIBRARY_DIR).st_size != 0 else json.loads(json.dumps({}))
+local_peer_files = json.load(LOCAL_WEAK_PEER_FILES) if os.stat(LOCAL_LIBRARY_DIR).st_size != 0 else json.loads(json.dumps({}))
+
+global_peer_files = copy.deepcopy(local_peer_files)
 
 strong_peer_graph = None
 neighbor_strong_peer_sockets = {}
@@ -150,8 +153,8 @@ def find_target(file):
     """
 
     query_id = random.randint(0,sys.maxsize)
-    now_time = datetime.datetime.now()
-    waiting_query_ids.append(tuple(query_id,str(now_time)))
+    now_time = "".join(str(datetime.datetime.now()).split(" "))
+    waiting_query_ids.append([query_id,now_time])
     try:
         for i in range(len(STRONG_PEERS)):
             if i != STRONG_PEER_ID:
@@ -168,7 +171,7 @@ def send_file_directory(weak_peer_socket):
     """
 
     try:
-        send_message(weak_peer_socket, "", json.dumps(json_peer_files))
+        send_message(weak_peer_socket, "", json.dumps(global_peer_files))
     except:
         # client closed connection, violently or by user
         return False
@@ -179,12 +182,12 @@ def update_global_file_directory():
     """
     try:
         query_id = random.randint(0,sys.maxsize)
-        now_time = datetime.datetime.now()
-        waiting_query_ids.append(tuple(query_id,str(now_time)))
+        now_time = "".join(str(datetime.datetime.now()).split(" "))
+        waiting_query_ids.append([query_id,now_time])
 
         for i in range(len(STRONG_PEERS)):
             if i != STRONG_PEER_ID:
-                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:{json.dumps(json_peer_files)}") 
+                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:{json.dumps(local_peer_files)}") 
     except Error as e:
         print(e)
 
@@ -193,7 +196,7 @@ def update_file_directory_from_strong(data):
         part = json.loads(data)
 
         for i in part:
-            json_peer_files[i] = part[i]
+            global_peer_files[i] = part[i]
     except Error as e:
         print(e)
         
@@ -202,23 +205,26 @@ def update_file_directory_from_weak(weak_peer_id, dir_list):
     """
     Updates local weak peer library 
     """
-    json_peer_files[weak_peer_id] = dir_list.split('\n')
+    local_peer_files[weak_peer_id] = dir_list.split('\n')
+    global_peer_files[weak_peer_id] = dir_list.split('\n')
     update_global_file_directory()
 
     # clear file and rewrite
     LOCAL_WEAK_PEER_FILES.truncate(0)
-    LOCAL_WEAK_PEER_FILES.write(f"{json.dumps(json_peer_files)}")
+    LOCAL_WEAK_PEER_FILES.write(f"{json.dumps(local_peer_files)}")
     LOCAL_WEAK_PEER_FILES.flush()
 
 def unregister_client(weak_peer_id):
     """
     Unregister weak peer from library
     """
-    del json_peer_files[weak_peer_id]
+    del local_peer_files[weak_peer_id]
+    del global_peer_files[weak_peer_id]
+    # update_global_file_directory()
 
     # clear file and rewrite
     LOCAL_WEAK_PEER_FILES.truncate(0)
-    LOCAL_WEAK_PEER_FILES.write(f"{json.dumps(json_peer_files)}")
+    LOCAL_WEAK_PEER_FILES.write(f"{json.dumps(local_peer_files)}")
     LOCAL_WEAK_PEER_FILES.flush()
 
 ###################################################################SERVER RELATED###################################################################
@@ -340,9 +346,11 @@ if __name__ == "__main__":
                     elif command_msg[0] == 'find_target':
                         pass
 
+# passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:{json.dumps(local_peer_files)}") 
+
                 if user["meta"] == "STRONG":
-                
                     # if the query have hit the target
+                    print(command_msg[3])
                     if command_msg[3] == f"TO:{STRONG_PEER_ID}":
                         if command_msg[4] == "QUERY:file_list":
                             start_new_thread(update_file_directory_from_strong, (''.join(command_msg[5:])[5:],))

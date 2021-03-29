@@ -20,7 +20,7 @@ HOST_FOLDER = WEAK_PEERS[WEAK_PEER_ID]['host_folder']
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
 REDOWNLOAD_TIME = config['redownload_times']
-LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{config['client']['log_file']}", "a")
+LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{WEAK_PEERS[WEAK_PEER_ID]['log_file']}", "a")
 
 
 
@@ -370,7 +370,7 @@ def server_daemon():
             # If notified socket is a server socket - new connection, accept it
             if notified_socket == weak_peer_socket:
                 
-                peer_socket, client_address = weak_peer_socket[weak_peer_socket.index(notified_socket)].accept()
+                peer_socket, client_address = weak_peer_socket.accept()
 
                 # Client should send his name right away, receive it
                 user = receive_command(peer_socket)
@@ -386,7 +386,7 @@ def server_daemon():
                 peers[peer_socket] = user
 
                 #logging
-                log_msg = 'Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8'))
+                log_msg = 'Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'])
                 log_this(log_msg)
 
             # Else existing socket is sending a command
@@ -397,7 +397,7 @@ def server_daemon():
 
                 # If False, client disconnected, cleanup
                 if command is False:
-                    log_msg = 'Closed connection from: {}'.format(peers[notified_socket]['data'].decode('utf-8'))
+                    log_msg = 'Closed connection from: {}'.format(peers[notified_socket]['data'])
                     log_this(log_msg)
 
                     # remove connections
@@ -415,7 +415,7 @@ def server_daemon():
                 command_meta = command["meta"]
 
                 # logging
-                log_msg = f'Recieved command from {user["data"].decode("utf-8")}: {command_msg[0]}\n'
+                log_msg = f'Recieved command from {user["data"]}: {command_msg[0]}\n'
                 log_this(log_msg)
 
                 # Handle commands

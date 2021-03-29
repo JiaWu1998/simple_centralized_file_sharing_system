@@ -1,3 +1,4 @@
+from shutil import Error
 import socket
 import select
 import os
@@ -27,20 +28,16 @@ HOST_FOLDER = STRONG_PEERS[STRONG_PEER_ID]['host_folder']
 
 HEADER_LENGTH = config['header_length']
 META_LENGTH = config['meta_length']
-LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{config['server']['log_file']}", "a")
+LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{STRONG_PEERS[STRONG_PEER_ID]['log_file']}", "a")
 
 LOCAL_LIBRARY_DIR = f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/client_files.json"
 LOCAL_WEAK_PEER_FILES = open(LOCAL_LIBRARY_DIR, "w+")
 json_peer_files = json.load(LOCAL_WEAK_PEER_FILES) if os.stat(LOCAL_LIBRARY_DIR).st_size != 0 else json.loads(json.dumps({}))
 
-global_file_list = json_peer_files
-
 strong_peer_graph = None
 neighbor_strong_peer_sockets = {}
 
-query_id = None
-
-strong_peer_query_counter = 0
+waiting_query_ids = []
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -141,95 +138,72 @@ def passing_message(target, message):
     """
     passes message to the next node in the path to the target
     """
+    
     shortest_path = strong_peer_graph.findShortestPath(STRONG_PEER_ID,target)
     next_node = shortest_path[1]
 
     send_message(neighbor_strong_peer_sockets[next_node],'', message)
 
-def update_global_file_directory(client_socket, target_type):
+def find_target(file):
     """
-    Broadcast query to all strong peers and also retrieve all returns on the orginal strong peer
+    Broadcast query to all strong peers
     """
-    
-    if target_type == "WEAK":
-        query_id = random.randint(0,sys.maxsize)
 
+    query_id = random.randint(0,sys.maxsize)
+    now_time = datetime.datetime.now()
+    waiting_query_ids.append(tuple(query_id,str(now_time)))
+    try:
         for i in range(len(STRONG_PEERS)):
             if i != STRONG_PEER_ID:
-                passing_message(i, f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:") 
+                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
+    except Error as e:
+        print(e)
 
-        # WAIT FOR ARRIVE and update global file list
-        while strong_peer_query_counter < len(STRONG_PEERS):
-            time.sleep(1)
-        
-        # reset the counter
-        strong_peer_query_counter = 0
-        
-    elif target_type == "STRONG":
-        
-        # Keep trying to recieve until client recieved returns from the server
-        while True:
-            try:
-                # Receive our "header" containing username length, it's size is defined and constant
-                header = client_socket.recv(HEADER_LENGTH)
+def look_for_local_file(file):
+    pass
 
-                # If we received no data, server gracefully closed a connection, for example using socket.close() or socket.shutdown(socket.SHUT_RDWR)
-                if not len(header):
-                    log_this(f"Connection closed by the server")
-                    return
-
-                # Convert header to int value
-                header = int(header.decode('utf-8').strip())
-
-                # Get meta data
-                meta = client_socket.recv(META_LENGTH)
-                meta = meta.decode('utf-8').strip()
-
-                # Receive and decode msg
-                dir_list = client_socket.recv(header).decode('utf-8')
-                dir_list = json.loads(dir_list)
-
-                # Print List
-                for client in dir_list:
-                    global_file_list[client] = dir_list[client]
-
-                # Break out of the loop when list is recieved
-                strong_peer_query_counter += 1                
-                break
-
-            except IOError as e:
-                # Any other exception - something happened, exit
-                if e.errno != errno.EAGAIN and e.errno != errno.EWOULDBLOCK:
-                    log_this('Reading error: {}'.format(str(e)))
-                    return
-
-                # We just did not receive anything
-                continue
-
-            except Exception as e:
-                # Any other exception - something happened, exit
-                log_this('Reading error: '.format(str(e)))
-                return
-
-def send_file_directory(client_socket, target_type):
+def send_file_directory(weak_peer_socket):
     """
-    Sends file directory to client by id or passes a message to another peer
+    Sends global file list to weak peer
     """
+
     try:
-        if target_type == "WEAK":
-            update_global_file_directory()
-            send_message(client_socket, "", json.dumps(global_file_list))
-        elif target_type == "STRONG":
-            passing_message(i, f"QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list_return DATA:{json.dumps(json_peer_files)}")
+        send_message(weak_peer_socket, "", json.dumps(json_peer_files))
     except:
         # client closed connection, violently or by user
         return False
 
-def update_file_directory(weak_peer_id, dir_list):
+def update_global_file_directory():
+    """
+    Broadcast query to all strong peers
+    """
+    try:
+        query_id = random.randint(0,sys.maxsize)
+        now_time = datetime.datetime.now()
+        waiting_query_ids.append(tuple(query_id,str(now_time)))
+
+        for i in range(len(STRONG_PEERS)):
+            if i != STRONG_PEER_ID:
+                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:{json.dumps(json_peer_files)}") 
+    except Error as e:
+        print(e)
+
+def update_file_directory_from_strong(data):
+    try:
+        part = json.loads(data)
+
+        for i in part:
+            json_peer_files[i] = part[i]
+    except Error as e:
+        print(e)
+        
+
+def update_file_directory_from_weak(weak_peer_id, dir_list):
     """
     Updates local weak peer library 
     """
     json_peer_files[weak_peer_id] = dir_list.split('\n')
+    update_global_file_directory()
 
     # clear file and rewrite
     LOCAL_WEAK_PEER_FILES.truncate(0)
@@ -250,32 +224,38 @@ def unregister_client(weak_peer_id):
 ###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
-    # Initialize super peer graph
-    strong_peer_graph = Graph(len(STRONG_PEERS))
-    for i in range(len(EDGES)):
-        if EDGES[i][0][0] == "s" and EDGES[i][1][0] == "s":
-            strong_peer_graph.addEdge(int(EDGES[i][0][1]),int(EDGES[i][1][1]),1)
-
-    #Initialize connections with other NEIGHBOR super peers
-    for edge in EDGES:
-        node_1 = [edge[0][0],int(edge[0][1])]
-        node_2 = [edge[1][0],int(edge[1][1])]
-
-        if node_1[0] == "s" and node_2[0] == "s":
-            if node_1[1] == STRONG_PEER_ID or node_2[1] == STRONG_PEER_ID:
-                temp_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                strong_peer_port =  STRONG_PEERS[node_2[1]]['port'] if node_1[1] == STRONG_PEER_ID else STRONG_PEERS[node_1[1]]['port']
-                temp_connection.connect((IP,strong_peer_port))
-                temp_connection.setblocking(False)
-                send_message(temp_connection, 'STRONG', f"strong_peer_{STRONG_PEER_ID}")
-                other_strong_peer_id =  node_2[1] if node_1[1] == STRONG_PEER_ID else node_1[1]
-                neighbor_strong_peer_sockets[other_strong_peer_id] = temp_connection
-    
     # Create a server socket
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     strong_peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     strong_peer_socket.bind((IP, SERVER_PORT))
     strong_peer_socket.listen()
+
+    # Initialize super peer graph 
+    strong_peer_graph = Graph(len(STRONG_PEERS))
+    for edge in EDGES:
+        node_1 = [edge[0][0],int(edge[0][1])]
+        node_2 = [edge[1][0],int(edge[1][1])]
+
+        if node_1[0] == "s" and node_2[0] == "s":
+            strong_peer_graph.addEdge(node_1[1],node_2[1],1)
+            strong_peer_graph.addEdge(node_2[1],node_1[1],1)
+        
+            #Initialize connections with other NEIGHBOR super peers
+            if node_1[1] == STRONG_PEER_ID or node_2[1] == STRONG_PEER_ID:
+                connected = False
+                while not connected:
+                    try:
+                        temp_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        strong_peer_port =  STRONG_PEERS[node_2[1]]['port'] if node_1[1] == STRONG_PEER_ID else STRONG_PEERS[node_1[1]]['port']
+                        strong_peer_ip_address =  STRONG_PEERS[node_2[1]]['ip_address'] if node_1[1] == STRONG_PEER_ID else STRONG_PEERS[node_1[1]]['ip_address']
+                        temp_connection.connect((strong_peer_ip_address,strong_peer_port))
+                        temp_connection.setblocking(False)
+                        send_message(temp_connection, 'STRONG', f"strong_peer_{STRONG_PEER_ID}")
+                        other_strong_peer_id =  node_2[1] if node_1[1] == STRONG_PEER_ID else node_1[1]
+                        neighbor_strong_peer_sockets[other_strong_peer_id] = temp_connection
+                        connected = True
+                    except:
+                        pass
 
     # Create list of sockets for select.select()
     sockets_list = [strong_peer_socket]
@@ -294,7 +274,7 @@ if __name__ == "__main__":
             # If notified socket is a server socket - new connection, accept it
             if notified_socket == strong_peer_socket:
 
-                client_socket, client_address = strong_peer_socket[strong_peer_socket.index(notified_socket)].accept()
+                client_socket, client_address = strong_peer_socket.accept()
 
                 # Client should send his name right away, receive it
                 user = receive_command(client_socket)
@@ -310,7 +290,7 @@ if __name__ == "__main__":
                 clients[client_socket] = user
 
                 # logging 
-                log_msg = 'Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'].decode('utf-8'))
+                log_msg = 'Accepted new connection from {}:{}, username: {}'.format(*client_address, user['data'])
                 log_this(log_msg)
             
             # Else existing socket is sending a command
@@ -321,7 +301,7 @@ if __name__ == "__main__":
 
                 # If False, client disconnected, cleanup
                 if command is False:
-                    log_msg = '{} Closed connection from: {}'.format(datetime.datetime.now(), clients[notified_socket]['data'].decode('utf-8'))                 
+                    log_msg = 'Closed connection from: {}'.format(clients[notified_socket]['data'])                 
                     log_this(log_msg)
 
                     # remove connections
@@ -339,36 +319,39 @@ if __name__ == "__main__":
                 command_meta = command["meta"]
 
                 # logging
-                log_msg = f'{datetime.datetime.now()} Received command from {user["data"].decode("utf-8")}: {command_msg[0]}'
+                log_msg = f'Received command from {user["data"]}: {command_msg[0]}'
                 log_this(log_msg)
 
                 # Handle commands from weak peers
                 if user["meta"] == "WEAK":
 
                     if command_msg[0] == 'get_files_list':
-                        start_new_thread(send_file_directory, (notified_socket,user["meta"]))
-                        log_this(f'Sent file list to {user["data"].decode("utf-8")}')
+                        start_new_thread(send_file_directory, (notified_socket,))
+                        log_this(f'Sent file list to {user["data"]}')
 
                     elif command_msg[0] == 'update_list':
-                        start_new_thread(update_file_directory, (int(command_meta),command_msg[1],))
-                        log_this(f"Update directory for client_{int(command_meta)}")
+                        start_new_thread(update_file_directory_from_weak, (int(command_meta),command_msg[1],))
+                        log_this(f"Update directory for weakpeer_{int(command_meta)}")
 
                     elif command_msg[0] == 'unregister':
                         start_new_thread(unregister_client, (int(command_meta),))
-                        log_this(f"Unregister client_{int(command_meta)}")
+                        log_this(f"Unregister weakpeer_{int(command_meta)}")
+                    
+                    elif command_msg[0] == 'find_target':
+                        pass
 
                 if user["meta"] == "STRONG":
-                    
+                
                     # if the query have hit the target
-                    if command_msg[2] == f"TO:{STRONG_PEER_ID}":
-                        if command_msg[3] == "QUERY:file_list":
-                            start_new_thread(send_file_directory, (notified_socket,user["meta"],))
-                        elif command_msg[3] == "QUERY:file_list_return":
-                            start_new_thread(update_global_file_directory, (notified_socket,command_msg[4].split(':')[1]))
+                    if command_msg[3] == f"TO:{STRONG_PEER_ID}":
+                        if command_msg[4] == "QUERY:file_list":
+                            start_new_thread(update_file_directory_from_strong, (''.join(command_msg[5:])[5:],))
 
+                        if command_msg[4] == "QUERY:find_target":
+                            start_new_thread(look_for_local_file, (command_msg[5].split(':')[1],))
                     # if not, keep passing_message
                     else:
-                        start_new_thread(passing_message,(int(command_msg[2].split(':')[1]),command["data"],))
+                        start_new_thread(passing_message,(int(command_msg[3].split(':')[1]),command["data"],))
 
         # handle some socket exceptions just in case
         for notified_socket in exception_sockets:

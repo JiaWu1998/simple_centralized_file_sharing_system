@@ -161,6 +161,7 @@ def find_target(weak_peer_socket, file):
     waiting_query_ids.append(query_id)
 
     FIND_TARGET_OUT_TIME = 10
+    time_passed = 0
 
     try:
     
@@ -168,8 +169,11 @@ def find_target(weak_peer_socket, file):
             if i != STRONG_PEER_ID:
                 passing_message(i, f"TIME:{now_time} QUERY_ID:{query_num} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
         
-        if query_id in waiting_query_ids:
-            time.sleep(FIND_TARGET_OUT_TIME)
+        while query_id in waiting_query_ids:
+            time.sleep(1)
+            time_passed += 1
+            if time_passed == FIND_TARGET_OUT_TIME:
+                break
         
         if tuple(query_id) in query_results:
             send_message(weak_peer_socket, 'SUCCESS_FIND_TARGET', str(query_results[tuple(query_id)]))

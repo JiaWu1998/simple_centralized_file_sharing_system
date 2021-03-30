@@ -49,6 +49,7 @@ def send_message(target_socket, metadata, message):
     """
     Send a message to a target socket with meta data
     """
+    log_this(f"MESSAGE SENT with metadata:{metadata} message:{message}")
     header = f"{len(message):<{HEADER_LENGTH}}".encode('utf-8')
     metadata = f"{metadata:<{META_LENGTH}}".encode('utf-8')
     message = message.encode('utf-8')
@@ -132,7 +133,6 @@ def wait_for_list(full_command):
     start = time.time()
 
     send_message(strong_peer_socket, '', full_command)
-    log_this(f"Weak peer sent command to Strong Peer: {full_command}")
     
     result = wait_for_result(strong_peer_socket)
 
@@ -151,7 +151,6 @@ def parallelize_wait_for_file_download(peer_socket, files):
 
     # Encode command to bytes, prepare header and convert to bytes, like for username above, then send
     send_message(peer_socket,'',f"download {' '.join(files)}")
-    log_this(f"Client sent command: {full_command}")
 
     # open files
     fds = [open(f"{os.path.dirname(os.path.abspath(__file__))}/{HOST_FOLDER}/{files[i]}",'w') for i in range(len(files))]
@@ -267,7 +266,6 @@ def find_target(file1):
 
     # Encode command to bytes, prepare header and convert to bytes, like for username above, then send
     send_message(strong_peer_socket,'',f"find_target {file1}")
-    log_this(f"Client sent command: find_target")
 
     result = wait_for_result(strong_peer_socket)
 
@@ -329,7 +327,6 @@ def send_files(peer_socket, peers, files):
 
                 if not line:
                     send_message(peer_socket,f'END {i}',m.hexdigest())
-                    log_this(f"{files[i]} was sent to {peers[peer_socket]['data']}")
                     break
 
                 # update md5 checksum
@@ -457,16 +454,17 @@ if __name__ == "__main__":
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     strong_peer_socket.connect((strong_peer_ip, strong_peer_port))
     strong_peer_socket.setblocking(False)
+
+    # create username to connect to the server
+    my_username = f"weak_peer_{WEAK_PEER_ID}"
+    send_message(strong_peer_socket,'WEAK',my_username)
     
+    # Start folder watch daemon to automatically update to server
+    start_new_thread(folder_watch_daemon,())
+    time.sleep(3)
+
     if len(sys.argv) == 1:
         # Manual Mode of Client Interface
-
-        # create username to connect to the server
-        my_username = f"weak_peer_{WEAK_PEER_ID}"
-        send_message(strong_peer_socket,'WEAK',my_username)
-
-        # Start folder watch daemon to automatically update to server
-        start_new_thread(folder_watch_daemon,())
         
         # Print verbose client shell begins
         help()
@@ -498,7 +496,6 @@ if __name__ == "__main__":
             
             elif command == "quit":
                 send_message(strong_peer_socket,str(WEAK_PEER_ID),"unregister")
-                log_this(f"Client sent command: {full_command}")
                 LOG.close()
                 sys.exit()
     
@@ -508,13 +505,6 @@ if __name__ == "__main__":
         #Args
         #python client.py command1 command2 ... commandn
 
-        # create username to connect to the server
-        my_username = f"weak_peer_{WEAK_PEER_ID}"
-        send_message(strong_peer_socket,'WEAK',my_username)
-
-        # Start folder watch daemon to automatically update to server
-        start_new_thread(folder_watch_daemon,())
-        time.sleep(3)
         
         # Does Client Things
         for i in sys.argv[1:]:
@@ -546,6 +536,5 @@ if __name__ == "__main__":
             
             elif command == "quit":
                 send_message(strong_peer_socket,str(WEAK_PEER_ID),"unregister")
-                log_this(f"Client sent command: {full_command}")
                 LOG.close()
                 sys.exit()

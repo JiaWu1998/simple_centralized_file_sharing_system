@@ -14,6 +14,9 @@ import time
 import errno
 import copy
 
+import atexit
+
+
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
 
@@ -57,6 +60,7 @@ def send_message(target_socket, metadata, message):
     """
     Send a message to a target socket with meta data
     """
+    log_this(f"MESSAGE SENT with metadata:{metadata} message:{message}")
     header = f"{len(message):<{HEADER_LENGTH}}".encode('utf-8')
     metadata = f"{metadata:<{META_LENGTH}}".encode('utf-8')
     message = message.encode('utf-8')
@@ -104,6 +108,11 @@ class Graph:
                     queue.append(i)
                     visited[i] = True
                     parent[i] = s
+
+def exit_handler():
+    log_this(f"EXIT STRONG_PEER_{STRONG_PEER_ID}")
+    LOG.flush()
+    LOG.close()
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -284,6 +293,8 @@ def unregister_client(weak_peer_id):
 ###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
+    atexit.register(exit_handler)
+
     # Create a server socket
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     strong_peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

@@ -66,27 +66,28 @@ def evaluation_1():
     create_strong_peers(N)
     create_weak_peers(N)
     
-    for i in range(N):
-        create_test_loads(i)
-
-     # start server and client and check
+    # for i in range(N):
+    #     create_test_loads(i)
+    
+    create_test_loads(1)
+    # start server and client and check
+    strong_peer_0 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_0")    
     strong_peer_1 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_1")    
     strong_peer_2 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_2")    
-    strong_peer_3 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_3")    
 
-    weak_peer_1 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_1")
-    weak_peer_2 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_2")
-    weak_peer_3 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_3")
+    weak_peer_0 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_0")
+    weak_peer_1 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_1")
+    weak_peer_2 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_2")
 
     time.sleep(10)
 
-    strong_peer_1.kill()
-    strong_peer_2.kill()
-    strong_peer_3.kill()
+    strong_peer_0.terminate()
+    strong_peer_1.terminate()
+    strong_peer_2.terminate()
 
-    weak_peer_1.kill()
-    weak_peer_2.kill()
-    weak_peer_3.kill()
+    weak_peer_0.terminate()
+    weak_peer_1.terminate()
+    weak_peer_2.terminate()
 
     # Clean up
     delete_strong_peers(N)

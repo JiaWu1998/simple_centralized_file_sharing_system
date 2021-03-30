@@ -529,7 +529,9 @@ if __name__ == "__main__":
 
             if command == "download":
                 if len(parameters) != 0:
-                    wait_for_file_download(full_command,my_username)
+                    target_client = find_target(parameters[0])
+                    if target_client != -1:
+                        wait_for_file_download(full_command,target_client,my_username)
                 else:
                     log_this("ParameterError: Too less parameters")
 

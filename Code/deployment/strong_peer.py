@@ -169,12 +169,19 @@ def find_target(weak_peer_socket, file):
             if i != STRONG_PEER_ID:
                 passing_message(i, f"TIME:{now_time} QUERY_ID:{query_num} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
         
+        # if file is in local file
+        for i in local_peer_files:
+            for f in local_peer_files[i]:
+                if f == file:
+                    send_message(weak_peer_socket, 'FAILURE_FIND_TARGET', '')
+                    return
+
         while query_id in waiting_query_ids:
             time.sleep(1)
             time_passed += 1
             if time_passed == FIND_TARGET_OUT_TIME:
                 break
-        
+
         if tuple(query_id) in query_results:
             send_message(weak_peer_socket, 'SUCCESS_FIND_TARGET', str(query_results[tuple(query_id)]))
         else:

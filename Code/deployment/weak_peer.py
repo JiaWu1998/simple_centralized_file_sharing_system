@@ -272,7 +272,6 @@ def find_target(file1):
     result = wait_for_result(strong_peer_socket)
 
     if result["meta"] == "SUCCESS_FIND_TARGET":
-        print("adasd")
         return int(result["data"])
     elif result["meta"] == "FAILURE_FIND_TARGET":
         return -1
@@ -332,11 +331,9 @@ def send_files(peer_socket, peers, files):
                     send_message(peer_socket,f'END {i}',m.hexdigest())
                     log_this(f"{files[i]} was sent to {peers[peer_socket]['data']}")
                     break
-                
-                line = line.encode('utf-8')
 
                 # update md5 checksum
-                m.update(line)
+                m.update(line.encode('utf-8'))
 
                 # sending each line to target peer socket
                 send_message(peer_socket, f'{i}', line)
@@ -344,7 +341,7 @@ def send_files(peer_socket, peers, files):
 
     except Exception as e:
         # client closed connection, violently or by user
-        send_message(peer_socket, "ERROR", str(e))
+        send_message(peer_socket, "ERROR", "ERROR: "+str(e))
         return False
 
 def server_daemon():

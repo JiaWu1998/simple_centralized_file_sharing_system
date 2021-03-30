@@ -23,8 +23,6 @@ REDOWNLOAD_TIME = config['redownload_times']
 LOG = open(f"{os.path.dirname(os.path.abspath(__file__))}/{WEAK_PEERS[WEAK_PEER_ID]['log_file']}", "a")
 
 
-
-
 #################################################################HELPER FUNCTIONS###################################################################
 def log_this(message):
     """
@@ -142,6 +140,7 @@ def wait_for_list(full_command):
     for client in dir_list:
         print(f"Weak Peer with id {client}:")
         for file in dir_list[client]:
+            log_this(f"\t{file}")
             print(f"\t{file}")
 
 def parallelize_wait_for_file_download(peer_socket, files):
@@ -330,7 +329,7 @@ def send_files(peer_socket, peers, files):
                     break
 
                 # update md5 checksum
-                m.update(line.encode('utf-8'))
+                m.update(line.encode('utf-8').strip())
 
                 # sending each line to target peer socket
                 send_message(peer_socket, f'{i}', line)
@@ -431,6 +430,7 @@ def server_daemon():
 ###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
+
     # Start the peer's server daemon
     start_new_thread(server_daemon,())
     time.sleep(3)

@@ -9,19 +9,19 @@
     "strong_peers": [
         {
             "ip_address": "127.0.0.1",
-            "port": 1235,
+            "port": 6001,
             "log_file": "server_log.txt",
             "host_folder": "watch_folder"
         },
         {
             "ip_address": "127.0.0.1",
-            "port": 1236,
+            "port": 6002,
             "log_file": "server_log.txt",
             "host_folder": "watch_folder"
         },
         {
             "ip_address": "127.0.0.1",
-            "port": 1237,
+            "port": 6003,
             "log_file": "server_log.txt",
             "host_folder": "watch_folder"
         }
@@ -30,19 +30,19 @@
     "weak_peers": [
         {
             "ip_address": "127.0.0.1",
-            "port": 1245,
+            "port": 6004,
             "log_file": "client_log.txt",
             "host_folder": "download_folder"
         },
         {
             "ip_address": "127.0.0.1",
-            "port": 1246,
+            "port": 6005,
             "log_file": "client_log.txt",
             "host_folder": "download_folder"
         },
         {
             "ip_address": "127.0.0.1",
-            "port": 1247,
+            "port": 6006,
             "log_file": "client_log.txt",
             "host_folder": "download_folder"
         }

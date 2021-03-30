@@ -56,8 +56,8 @@ def delete_weak_peers(N):
 # Create test loads for client_idx
 def create_test_loads(idx):
     for size in TEST_LOAD_SIZES:
-        f = open(f"{PARENT_DIR}/../weakpeer_{idx}/download_folder/load_{size}","wb")
-        f.write(os.urandom(size))
+        f = open(f"{PARENT_DIR}/../weakpeer_{idx}/download_folder/load_{size}","w")
+        f.write("b"*size)
         f.close()
 
 # Evaluation 1:
@@ -77,26 +77,28 @@ def evaluation_1():
     strong_peer_1 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_1")    
     strong_peer_2 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_2")    
 
-    weak_peer_0 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_0")
+    time.sleep(5)
+    
+    weak_peer_0 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_0")
     weak_peer_1 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_1")
     weak_peer_2 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_2")
 
     time.sleep(5)
 
-    strong_peer_0.communicate("".encode("utf-8"))
-    # strong_peer_0.send_signal(signal.SIGINT)
-    strong_peer_1.communicate("".encode("utf-8"))
-    # strong_peer_1.send_signal(signal.SIGINT)
-    strong_peer_2.communicate("".encode("utf-8"))
-    # strong_peer_2.send_signal(signal.SIGINT)
+    weak_peer_0.communicate(input='download load_128'.encode("utf-8"))[0]
+    time.sleep(5)
+
+    strong_peer_0.kill()
+    strong_peer_1.kill()
+    strong_peer_2.kill()
 
     weak_peer_0.kill()
     weak_peer_1.kill()
     weak_peer_2.kill()
 
     # Clean up
-    delete_strong_peers(N)
-    delete_weak_peers(N)
+    # delete_strong_peers(N)
+    # delete_weak_peers(N)
 
 # Evaluation 2:
 def evaluation_2():

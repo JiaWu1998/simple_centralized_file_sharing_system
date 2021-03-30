@@ -14,8 +14,6 @@ import time
 import errno
 import copy
 
-import signal
-import sys
 
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
@@ -45,6 +43,8 @@ neighbor_strong_peer_sockets = {}
 
 waiting_query_ids = []
 query_results = {}
+
+seen_querys = []
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -109,12 +109,6 @@ class Graph:
                     visited[i] = True
                     parent[i] = s
 
-def signal_handler(sig, frame):
-    log_this(f"EXIT STRONG_PEER_{STRONG_PEER_ID}")
-    LOG.flush()
-    LOG.close()
-    sys.exit(0)
-
 #################################################################HELPER FUNCTIONS###################################################################
 
 ###################################################################SERVER RELATED###################################################################
@@ -174,17 +168,17 @@ def find_target(weak_peer_socket, file):
     time_passed = 0
 
     try:
-    
-        for i in range(len(STRONG_PEERS)):
-            if i != STRONG_PEER_ID:
-                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_num} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
         
         # if file is in local file
         for i in local_peer_files:
             for f in local_peer_files[i]:
                 if f == file:
-                    send_message(weak_peer_socket, 'FAILURE_FIND_TARGET', '')
+                    send_message(weak_peer_socket, 'SUCCESS_FIND_TARGET', str(i))
                     return
+
+        for i in range(len(STRONG_PEERS)):
+            if i != STRONG_PEER_ID:
+                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_num} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
 
         while query_id in waiting_query_ids:
             time.sleep(1)
@@ -294,8 +288,6 @@ def unregister_client(weak_peer_id):
 ###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
-    signal.signal(signal.SIGINT, signal_handler)
-
     # Create a server socket
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     strong_peer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -425,7 +417,9 @@ if __name__ == "__main__":
                             start_new_thread(remove_query, (command["data"],))
                     # if not, keep passing_message
                     else:
-                        start_new_thread(passing_message,(int(command_msg[3].split(':')[1]),command["data"],))
+                        if command["data"] not in seen_querys:
+                            seen_querys.append(command["data"])
+                            start_new_thread(passing_message,(int(command_msg[3].split(':')[1]),command["data"],))
 
         # handle some socket exceptions just in case
         for notified_socket in exception_sockets:

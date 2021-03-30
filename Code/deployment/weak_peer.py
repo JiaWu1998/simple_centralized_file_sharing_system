@@ -271,7 +271,11 @@ def find_target(file1):
 
     result = wait_for_result(strong_peer_socket)
 
-    return int(result["data"])
+    if result["meta"] == "SUCCESS_FIND_TARGET":
+        print("adasd")
+        return int(result["data"])
+    elif result["meta"] == "FAILURE_FIND_TARGET":
+        return -1
 
 
 ###################################################################CLIENT RELATED###################################################################
@@ -481,7 +485,8 @@ if __name__ == "__main__":
             if command == "download":
                 if len(parameters) != 0:
                     target_client = find_target(parameters[0])
-                    wait_for_file_download(full_command,target_client,my_username)
+                    if target_client != -1:
+                        wait_for_file_download(full_command,target_client,my_username)
                 else:
                     log_this("ParameterError: Too less parameters")
 

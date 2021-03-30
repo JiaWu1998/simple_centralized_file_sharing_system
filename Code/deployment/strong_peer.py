@@ -41,6 +41,7 @@ strong_peer_graph = None
 neighbor_strong_peer_sockets = {}
 
 waiting_query_ids = []
+query_results = {}
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -147,23 +148,65 @@ def passing_message(target, message):
 
     send_message(neighbor_strong_peer_sockets[next_node],'', message)
 
-def find_target(file):
+def find_target(weak_peer_socket, file):
     """
     Broadcast query to all strong peers
     """
+    global query_results
+    global waiting_query_ids
 
-    query_id = random.randint(0,sys.maxsize)
+    query_num = random.randint(0,sys.maxsize)
     now_time = "".join(str(datetime.datetime.now()).split(" "))
-    waiting_query_ids.append([query_id,now_time])
+    query_id = [query_num,now_time]
+    waiting_query_ids.append(query_id)
+
+    FIND_TARGET_OUT_TIME = 10
+
     try:
+    
         for i in range(len(STRONG_PEERS)):
             if i != STRONG_PEER_ID:
-                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
+                passing_message(i, f"TIME:{now_time} QUERY_ID:{query_num} FROM:{STRONG_PEER_ID} TO:{i} QUERY:find_target DATA:{file}") 
+        
+        if query_id in waiting_query_ids:
+            time.sleep(FIND_TARGET_OUT_TIME)
+        
+        if tuple(query_id) in query_results:
+            send_message(weak_peer_socket, 'SUCCESS_FIND_TARGET', str(query_results[tuple(query_id)]))
+        else:
+            send_message(weak_peer_socket, 'FAILURE_FIND_TARGET', '')
+
     except Error as e:
         print(e)
 
-def look_for_local_file(file):
-    pass
+def look_for_local_file(query, file):
+    for i in local_peer_files:
+        for f in local_peer_files[i]:
+            if f == file:
+                query = query.split(" ")
+                query = [query[q].split(':')[1] if q != 0 else query[q] for q in range(len(query))]
+                message = f"{query[0]} QUERY_ID:{query[1]} FROM:{query[3]} TO:{query[2]} QUERY:return_find_target DATA:{i}"
+                passing_message(int(query[2]),message)
+                break
+
+def remove_query(query):
+    global query_results
+    global waiting_query_ids
+
+    print(query)
+    query = query.split(" ")
+    query = [query[q].split(':')[1] if q != 0 else query[q][5:] for q in range(len(query))]
+
+    query_id = [int(query[1]),query[0]]
+    print(waiting_query_ids)
+    print(query_id)
+    if query_id in waiting_query_ids:
+        waiting_query_ids.remove(query_id)
+        print(waiting_query_ids)
+        query_results[tuple(query_id)] = query[5]
+
+        print(tuple(query_id))
+        print(query_results)
 
 def send_file_directory(weak_peer_socket):
     """
@@ -220,7 +263,7 @@ def unregister_client(weak_peer_id):
     """
     del local_peer_files[weak_peer_id]
     del global_peer_files[weak_peer_id]
-    # update_global_file_directory()
+    update_global_file_directory()
 
     # clear file and rewrite
     LOCAL_WEAK_PEER_FILES.truncate(0)
@@ -344,19 +387,19 @@ if __name__ == "__main__":
                         log_this(f"Unregister weakpeer_{int(command_meta)}")
                     
                     elif command_msg[0] == 'find_target':
-                        pass
-
-# passing_message(i, f"TIME:{now_time} QUERY_ID:{query_id} FROM:{STRONG_PEER_ID} TO:{i} QUERY:file_list DATA:{json.dumps(local_peer_files)}") 
+                        start_new_thread(find_target, (notified_socket, command_msg[1],))
 
                 if user["meta"] == "STRONG":
                     # if the query have hit the target
-                    print(command_msg[3])
                     if command_msg[3] == f"TO:{STRONG_PEER_ID}":
                         if command_msg[4] == "QUERY:file_list":
                             start_new_thread(update_file_directory_from_strong, (''.join(command_msg[5:])[5:],))
 
                         if command_msg[4] == "QUERY:find_target":
-                            start_new_thread(look_for_local_file, (command_msg[5].split(':')[1],))
+                            start_new_thread(look_for_local_file, (command["data"],command_msg[5].split(':')[1],))
+
+                        if command_msg[4] == "QUERY:return_find_target":
+                            start_new_thread(remove_query, (command["data"],))
                     # if not, keep passing_message
                     else:
                         start_new_thread(passing_message,(int(command_msg[3].split(':')[1]),command["data"],))

@@ -1,9 +1,11 @@
 import os
 import shutil
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, TimeoutExpired
 import time
 import matplotlib.pyplot as plt
 import sys
+import signal
+
 
 # Test File Load Sizes
 TEST_LOAD_SIZES = [128,512,2000,8000,32000]
@@ -79,15 +81,18 @@ def evaluation_1():
     weak_peer_1 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_1")
     weak_peer_2 = Popen(['python','weak_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_2")
 
-    time.sleep(10)
+    time.sleep(5)
 
-    strong_peer_0.terminate()
-    strong_peer_1.terminate()
-    strong_peer_2.terminate()
+    strong_peer_0.communicate("".encode("utf-8"))
+    # strong_peer_0.send_signal(signal.SIGINT)
+    strong_peer_1.communicate("".encode("utf-8"))
+    # strong_peer_1.send_signal(signal.SIGINT)
+    strong_peer_2.communicate("".encode("utf-8"))
+    # strong_peer_2.send_signal(signal.SIGINT)
 
-    weak_peer_0.terminate()
-    weak_peer_1.terminate()
-    weak_peer_2.terminate()
+    weak_peer_0.kill()
+    weak_peer_1.kill()
+    weak_peer_2.kill()
 
     # Clean up
     delete_strong_peers(N)

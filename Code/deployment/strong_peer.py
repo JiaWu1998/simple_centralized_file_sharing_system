@@ -14,8 +14,8 @@ import time
 import errno
 import copy
 
-import atexit
-
+import signal
+import sys
 
 # get configurations
 config = json.load(open(f"{os.path.dirname(os.path.abspath(__file__))}/config.json"))
@@ -109,10 +109,11 @@ class Graph:
                     visited[i] = True
                     parent[i] = s
 
-def exit_handler():
+def signal_handler(sig, frame):
     log_this(f"EXIT STRONG_PEER_{STRONG_PEER_ID}")
     LOG.flush()
     LOG.close()
+    sys.exit(0)
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -293,7 +294,7 @@ def unregister_client(weak_peer_id):
 ###################################################################SERVER RELATED###################################################################
 
 if __name__ == "__main__":
-    atexit.register(exit_handler)
+    signal.signal(signal.SIGINT, signal_handler)
 
     # Create a server socket
     strong_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

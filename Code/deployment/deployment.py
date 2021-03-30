@@ -60,14 +60,40 @@ def create_test_loads(idx):
 
 # Evaluation 1:
 def evaluation_1():
-    pass
+    N = 3
+
+    # Create peer environments
+    create_strong_peers(N)
+    create_weak_peers(N)
+    
+    for i in range(N):
+        create_test_loads(i)
+
+     # start server and client and check
+    strong_peer_1 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_1")    
+    strong_peer_2 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_2")    
+    strong_peer_3 = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_3")    
+
+    weak_peer_1 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_1")
+    weak_peer_2 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_2")
+    weak_peer_3 = Popen(['python','weak_peer.py',f"download load_{TEST_LOAD_SIZES[-1]}"], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../weakpeer_3")
+
+    time.sleep(10)
+
+    strong_peer_1.kill()
+    strong_peer_2.kill()
+    strong_peer_3.kill()
+
+    weak_peer_1.kill()
+    weak_peer_2.kill()
+    weak_peer_3.kill()
+
+    # Clean up
+    delete_strong_peers(N)
+    delete_weak_peers(N)
 
 # Evaluation 2:
 def evaluation_2():
-    pass
-
-# Evaluation 3:
-def evaluation_3():
     pass
 
 if __name__ == "__main__":
@@ -76,9 +102,6 @@ if __name__ == "__main__":
 
     elif sys.argv[1] == "-2":
         evaluation_2()
-
-    elif sys.argv[1] == "-3":
-        evaluation_3()
 
     elif sys.argv[1] == "-c" and len(sys.argv) == 3:
         try: 

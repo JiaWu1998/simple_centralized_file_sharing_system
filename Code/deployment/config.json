@@ -18,6 +18,12 @@
             "port": 1236,
             "log_file": "server_log.txt",
             "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1237,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
         }
     ],
 
@@ -33,14 +39,22 @@
             "port": 1246,
             "log_file": "client_log.txt",
             "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 1247,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
         }
     ],
 
     "edges":[
         ["s0","w0"],
         ["s1","w1"],
+        ["s2","w2"],
 
-        ["s0","s1"]
+        ["s0","s1"],
+        ["s1","s2"]
     ]
 
 }

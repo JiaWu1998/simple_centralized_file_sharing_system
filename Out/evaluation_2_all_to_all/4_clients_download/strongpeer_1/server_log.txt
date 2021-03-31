@@ -1,0 +1,117 @@
+2021-03-30 22:39:10.095002 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.095607 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.096105 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.096486 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.096790 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.097037 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.097274 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.097511 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.097712 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.097968 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.098183 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.098541 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.098826 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.099114 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.099405 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.099744 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.100022 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.100304 MESSAGE SENT with metadata:STRONG message:strong_peer_1
+2021-03-30 22:39:10.100415 Listening for connections on 127.0.0.1:6002...
+2021-03-30 22:39:10.100497 Accepted new connection from 127.0.0.1:58643, username: strong_peer_0
+2021-03-30 22:39:10.100557 Accepted new connection from 127.0.0.1:58646, username: strong_peer_5
+2021-03-30 22:39:10.100612 Accepted new connection from 127.0.0.1:58647, username: strong_peer_3
+2021-03-30 22:39:10.100665 Accepted new connection from 127.0.0.1:58654, username: strong_peer_3
+2021-03-30 22:39:10.100686 Closed connection from: strong_peer_3
+2021-03-30 22:39:10.100772 Accepted new connection from 127.0.0.1:58661, username: strong_peer_4
+2021-03-30 22:39:10.100838 Accepted new connection from 127.0.0.1:58662, username: strong_peer_7
+2021-03-30 22:39:10.100862 Closed connection from: strong_peer_4
+2021-03-30 22:39:10.100944 Accepted new connection from 127.0.0.1:58671, username: strong_peer_4
+2021-03-30 22:39:10.101012 Accepted new connection from 127.0.0.1:58677, username: strong_peer_9
+2021-03-30 22:39:10.101101 Accepted new connection from 127.0.0.1:58684, username: strong_peer_8
+2021-03-30 22:39:10.101195 Accepted new connection from 127.0.0.1:58691, username: strong_peer_6
+2021-03-30 22:39:10.101326 Accepted new connection from 127.0.0.1:58697, username: strong_peer_6
+2021-03-30 22:39:10.103466 Closed connection from: strong_peer_6
+2021-03-30 22:39:10.115626 Accepted new connection from 127.0.0.1:58725, username: strong_peer_2
+2021-03-30 22:39:10.116155 Accepted new connection from 127.0.0.1:58727, username: strong_peer_2
+2021-03-30 22:39:10.116245 Closed connection from: strong_peer_2
+2021-03-30 22:39:10.139108 Accepted new connection from 127.0.0.1:58752, username: strong_peer_5
+2021-03-30 22:39:10.139209 Closed connection from: strong_peer_5
+2021-03-30 22:39:10.139411 Accepted new connection from 127.0.0.1:58755, username: strong_peer_0
+2021-03-30 22:39:10.139501 Closed connection from: strong_peer_0
+2021-03-30 22:39:10.177003 Accepted new connection from 127.0.0.1:58781, username: strong_peer_7
+2021-03-30 22:39:10.177269 Closed connection from: strong_peer_7
+2021-03-30 22:39:10.189042 Accepted new connection from 127.0.0.1:58802, username: strong_peer_9
+2021-03-30 22:39:10.189235 Closed connection from: strong_peer_9
+2021-03-30 22:39:10.189924 Accepted new connection from 127.0.0.1:58806, username: strong_peer_8
+2021-03-30 22:39:10.190063 Closed connection from: strong_peer_8
+2021-03-30 22:39:17.974341 Accepted new connection from 127.0.0.1:58821, username: weak_peer_1
+2021-03-30 22:39:17.974598 Received command from weak_peer_1: update_list
+2021-03-30 22:39:17.974750 Update directory for weakpeer_1
+2021-03-30 22:39:17.975057 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:0 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975175 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:2 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975290 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:3 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975374 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:4 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975447 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:5 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975520 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:6 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975605 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:7 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975684 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:8 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.975752 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:17.974975 QUERY_ID:7172894909470237437 FROM:1 TO:9 QUERY:file_list DATA:{"1": [""]}
+2021-03-30 22:39:17.976613 Received command from strong_peer_0: TIME:2021-03-3022:39:17.974771
+2021-03-30 22:39:18.001358 Received command from strong_peer_2: TIME:2021-03-3022:39:17.988935
+2021-03-30 22:39:18.012982 Received command from strong_peer_3: TIME:2021-03-3022:39:18.011802
+2021-03-30 22:39:18.025902 Received command from strong_peer_7: TIME:2021-03-3022:39:18.024253
+2021-03-30 22:39:18.054605 Received command from strong_peer_4: TIME:2021-03-3022:39:18.052942
+2021-03-30 22:39:18.066591 Received command from strong_peer_5: TIME:2021-03-3022:39:18.063410
+2021-03-30 22:39:18.066794 Received command from strong_peer_9: TIME:2021-03-3022:39:18.063562
+2021-03-30 22:39:18.072809 Received command from strong_peer_6: TIME:2021-03-3022:39:18.071575
+2021-03-30 22:39:18.072902 Received command from strong_peer_8: TIME:2021-03-3022:39:18.070983
+2021-03-30 22:39:20.979794 Received command from strong_peer_0: TIME:2021-03-3022:39:20.978976
+2021-03-30 22:39:21.990370 Received command from strong_peer_0: TIME:2021-03-3022:39:21.989588
+2021-03-30 22:39:21.991017 Received command from strong_peer_0: TIME:2021-03-3022:39:21.990109
+2021-03-30 22:39:22.027714 Received command from weak_peer_1: find_target
+2021-03-30 22:39:22.027872 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:0 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.027968 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:2 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028026 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:3 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028105 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:4 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028156 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:5 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028198 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:6 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028238 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:7 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028279 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:8 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.028336 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:22.027837 QUERY_ID:5360988765886024850 FROM:1 TO:9 QUERY:find_target DATA:load_2
+2021-03-30 22:39:22.031409 Received command from strong_peer_4: TIME:2021-03-3022:39:22.027837
+2021-03-30 22:39:23.028853 MESSAGE SENT with metadata:SUCCESS_FIND_TARGET message:4
+2021-03-30 22:39:23.274640 Received command from weak_peer_1: update_list
+2021-03-30 22:39:23.274740 Update directory for weakpeer_1
+2021-03-30 22:39:23.274884 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:0 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275072 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:2 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275148 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:3 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275209 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:4 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275265 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:5 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275319 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:6 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275372 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:7 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275425 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:8 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.275477 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.274820 QUERY_ID:2719852870463264066 FROM:1 TO:9 QUERY:file_list DATA:{"1": ["load_2"]}
+2021-03-30 22:39:23.278099 Received command from weak_peer_1: find_target
+2021-03-30 22:39:23.278344 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:0 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.278473 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:2 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.278532 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:3 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.278630 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:4 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.278980 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:5 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.279127 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:6 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.279178 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:7 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.279226 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:8 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.279272 MESSAGE SENT with metadata: message:TIME:2021-03-3022:39:23.278212 QUERY_ID:6271611521155079119 FROM:1 TO:9 QUERY:find_target DATA:load_3
+2021-03-30 22:39:23.281194 Received command from strong_peer_4: TIME:2021-03-3022:39:23.278212
+2021-03-30 22:39:24.281696 MESSAGE SENT with metadata:SUCCESS_FIND_TARGET message:4
+2021-03-30 22:39:24.420418 Closed connection from: weak_peer_1
+2021-03-30 22:39:24.421750 Received command from strong_peer_2: TIME:2021-03-3022:39:24.421048
+2021-03-30 22:39:25.431997 Received command from strong_peer_2: TIME:2021-03-3022:39:25.430907
+2021-03-30 22:39:25.443192 Received command from strong_peer_2: TIME:2021-03-3022:39:25.442052
+2021-03-30 22:39:26.442941 Received command from strong_peer_2: TIME:2021-03-3022:39:26.441954
+2021-03-30 22:39:26.462120 Received command from strong_peer_3: TIME:2021-03-3022:39:26.461411
+2021-03-30 22:39:27.531651 Received command from strong_peer_3: TIME:2021-03-3022:39:27.530344
+2021-03-30 22:39:27.538881 Received command from strong_peer_3: TIME:2021-03-3022:39:27.538005
+2021-03-30 22:39:28.538972 Received command from strong_peer_3: TIME:2021-03-3022:39:28.538211
+2021-03-30 22:39:28.542036 Received command from strong_peer_3: TIME:2021-03-3022:39:28.540633
+2021-03-30 22:39:29.545134 Received command from strong_peer_3: TIME:2021-03-3022:39:29.544063
+2021-03-30 22:39:29.547863 Received command from strong_peer_3: TIME:2021-03-3022:39:29.544922

@@ -1,0 +1,38 @@
+2021-03-30 22:37:54.653231 Listening for connections on 127.0.0.1:6012...
+2021-03-30 22:37:57.655866 MESSAGE SENT with metadata:WEAK message:weak_peer_1
+2021-03-30 22:37:57.656242 MESSAGE SENT with metadata:1 message:update_list 
+2021-03-30 22:38:06.022574 MESSAGE SENT with metadata: message:find_target load_5
+2021-03-30 22:38:07.029650 MESSAGE SENT with metadata: message:weak_peer_1
+2021-03-30 22:38:07.032763 MESSAGE SENT with metadata: message:download load_5
+2021-03-30 22:38:07.034566 DownloadComplete: 0.10919570922851562 ms. Downloaded Files are load_5
+2021-03-30 22:38:07.034790 MESSAGE SENT with metadata:1 message:update_list load_5
+2021-03-30 22:38:07.038409 MESSAGE SENT with metadata: message:find_target load_6
+2021-03-30 22:38:07.043137 MESSAGE SENT with metadata: message:weak_peer_1
+2021-03-30 22:38:07.048069 MESSAGE SENT with metadata: message:download load_6
+2021-03-30 22:38:07.049798 MESSAGE SENT with metadata:1 message:update_list load_6
+load_5
+2021-03-30 22:38:07.049859 DownloadComplete: 0.17213821411132812 ms. Downloaded Files are load_6
+2021-03-30 22:38:07.059669 MESSAGE SENT with metadata: message:find_target load_7
+2021-03-30 22:38:08.122751 MESSAGE SENT with metadata: message:weak_peer_1
+2021-03-30 22:38:08.123032 MESSAGE SENT with metadata: message:download load_7
+2021-03-30 22:38:08.123443 MESSAGE SENT with metadata: message:find_target load_8
+2021-03-30 22:38:08.126693 DownloadComplete: 0.12326240539550781 ms. Downloaded Files are load_7
+2021-03-30 22:38:08.153896 MESSAGE SENT with metadata:1 message:update_list load_6
+load_7
+load_5
+2021-03-30 22:38:09.129971 MESSAGE SENT with metadata: message:weak_peer_1
+2021-03-30 22:38:09.130275 MESSAGE SENT with metadata: message:download load_8
+2021-03-30 22:38:09.132239 DownloadComplete: 0.1010894775390625 ms. Downloaded Files are load_8
+2021-03-30 22:38:09.132570 MESSAGE SENT with metadata: message:find_target load_9
+2021-03-30 22:38:09.176449 MESSAGE SENT with metadata:1 message:update_list load_8
+load_6
+load_7
+load_5
+2021-03-30 22:38:10.171825 MESSAGE SENT with metadata: message:weak_peer_1
+2021-03-30 22:38:10.172105 MESSAGE SENT with metadata: message:download load_9
+2021-03-30 22:38:10.173823 DownloadComplete: 0.09608268737792969 ms. Downloaded Files are load_9
+2021-03-30 22:38:10.174009 MESSAGE SENT with metadata:1 message:update_list load_8
+load_6
+load_7
+load_9
+load_5

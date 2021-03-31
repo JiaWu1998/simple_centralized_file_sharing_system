@@ -1,0 +1,8 @@
+2021-03-30 22:40:33.533897 Listening for connections on 127.0.0.1:6017...
+2021-03-30 22:40:36.561394 MESSAGE SENT with metadata:WEAK message:weak_peer_6
+2021-03-30 22:40:36.576577 MESSAGE SENT with metadata:6 message:update_list 
+2021-03-30 22:40:45.517561 MESSAGE SENT with metadata: message:find_target load_6
+2021-03-30 22:40:46.524743 MESSAGE SENT with metadata: message:weak_peer_6
+2021-03-30 22:40:46.525093 MESSAGE SENT with metadata: message:download load_6
+2021-03-30 22:40:46.525923 MESSAGE SENT with metadata:6 message:update_list load_6
+2021-03-30 22:40:46.525978 DownloadComplete: 0.141143798828125 ms. Downloaded Files are load_6

@@ -1,0 +1,250 @@
+
+{
+     
+    "header_length": 10,
+
+    "meta_length": 20,
+
+    "redownload_times": 5,
+
+    "strong_peers": [
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6001,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6002,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6003,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6004,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6005,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6006,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6007,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6008,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6009,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6010,
+            "log_file": "server_log.txt",
+            "host_folder": "watch_folder"
+        }
+    ],
+
+    "weak_peers": [
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6011,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6012,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6013,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6014,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6015,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6016,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6017,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6018,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6019,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        },
+        {
+            "ip_address": "127.0.0.1",
+            "port": 6020,
+            "log_file": "client_log.txt",
+            "host_folder": "download_folder"
+        }
+    ],
+
+    "edges":[
+        ["s0","w0"],
+        ["s1","w1"],
+        ["s2","w2"],
+        ["s3","w3"],
+        ["s4","w4"],
+        ["s5","w5"],
+        ["s6","w6"],
+        ["s7","w7"],
+        ["s8","w8"],
+        ["s9","w9"],
+
+        ["s0","s1"],
+        ["s0","s2"],
+        ["s0","s3"],
+        ["s0","s4"],
+        ["s0","s5"],
+        ["s0","s6"],
+        ["s0","s7"],
+        ["s0","s8"],
+        ["s0","s9"],
+
+        ["s1","s0"],
+        ["s1","s2"],
+        ["s1","s3"],
+        ["s1","s4"],
+        ["s1","s5"],
+        ["s1","s6"],
+        ["s1","s7"],
+        ["s1","s8"],
+        ["s1","s9"],
+
+        ["s2","s0"],
+        ["s2","s1"],
+        ["s2","s3"],
+        ["s2","s4"],
+        ["s2","s5"],
+        ["s2","s6"],
+        ["s2","s7"],
+        ["s2","s8"],
+        ["s2","s9"],
+
+        ["s3","s0"],
+        ["s3","s1"],
+        ["s3","s2"],
+        ["s3","s4"],
+        ["s3","s5"],
+        ["s3","s6"],
+        ["s3","s7"],
+        ["s3","s8"],
+        ["s3","s9"],
+
+        ["s4","s0"],
+        ["s4","s1"],
+        ["s4","s2"],
+        ["s4","s3"],
+        ["s4","s5"],
+        ["s4","s6"],
+        ["s4","s7"],
+        ["s4","s8"],
+        ["s4","s9"],
+
+        ["s5","s0"],
+        ["s5","s1"],
+        ["s5","s2"],
+        ["s5","s3"],
+        ["s5","s4"],
+        ["s5","s6"],
+        ["s5","s7"],
+        ["s5","s8"],
+        ["s5","s9"],
+
+        ["s6","s0"],
+        ["s6","s1"],
+        ["s6","s2"],
+        ["s6","s3"],
+        ["s6","s4"],
+        ["s6","s5"],
+        ["s6","s7"],
+        ["s6","s8"],
+        ["s6","s9"],
+
+        ["s7","s0"],
+        ["s7","s1"],
+        ["s7","s2"],
+        ["s7","s3"],
+        ["s7","s4"],
+        ["s7","s5"],
+        ["s7","s6"],
+        ["s7","s8"],
+        ["s7","s9"],
+
+        ["s8","s0"],
+        ["s8","s1"],
+        ["s8","s2"],
+        ["s8","s3"],
+        ["s8","s4"],
+        ["s8","s5"],
+        ["s8","s6"],
+        ["s8","s7"],
+        ["s8","s9"],
+
+        ["s9","s0"],
+        ["s9","s1"],
+        ["s9","s2"],
+        ["s9","s3"],
+        ["s9","s4"],
+        ["s9","s5"],
+        ["s9","s6"],
+        ["s9","s7"],
+        ["s9","s8"]
+
+    ]
+
+}

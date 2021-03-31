@@ -70,44 +70,55 @@ class Graph:
     """
     A Graph class for super peers
     """
-    def __init__(self,vertices):
-        self.V = vertices 
-        self.V_org = vertices
-        self.graph = defaultdict(list) 
-        self.shortest_path = []
+    def __init__(self):
+        self.graph = defaultdict(list)
    
-    def addEdge(self,u,v,w):
-        if w == 1:
-            self.graph[u].append(v)
-        else:    
-            self.graph[u].append(self.V)
-            self.graph[self.V].append(v)
-            self.V = self.V + 1
+    def addEdge(self,u,v):
+        self.graph[u].append(v)
+        self.graph[v].append(u)
 
-    def printPath(self, parent, j):
-        if parent[j] == -1 and j < self.V_org :
-            self.shortest_path.append(j)
-            return self.shortest_path
-        self.printPath(parent , parent[j])
-        if j < self.V_org :
-            self.shortest_path.append(j)
-        return self.shortest_path
-
-    def findShortestPath(self,src, dest):
-        visited =[False]*(self.V)
-        parent =[-1]*(self.V)
-        queue=[]
-        queue.append(src)
-        visited[src] = True
-        while queue :
-            s = queue.pop(0)
-            if s == dest:
-                return self.printPath(parent, s)
-            for i in self.graph[s]:
-                if visited[i] == False:
-                    queue.append(i)
-                    visited[i] = True
-                    parent[i] = s
+    def findShortestPath(self, start, goal):
+        explored = []
+        
+        # Queue for traversing the 
+        # graph in the BFS
+        queue = [[start]]
+        
+        # If the desired node is 
+        # reached
+        if start == goal:
+            print("Same Node")
+            return
+        
+        # Loop to traverse the graph 
+        # with the help of the queue
+        while queue:
+            path = queue.pop(0)
+            node = path[-1]
+            
+            # Codition to check if the
+            # current node is not visited
+            if node not in explored:
+                neighbours = self.graph[node]
+                
+                # Loop to iterate over the 
+                # neighbours of the node
+                for neighbour in neighbours:
+                    new_path = list(path)
+                    new_path.append(neighbour)
+                    queue.append(new_path)
+                    
+                    # Condition to check if the 
+                    # neighbour node is the goal
+                    if neighbour == goal:
+                        return new_path
+                explored.append(node)
+    
+        # Condition when the nodes 
+        # are not connected
+        print("So sorry, but a connecting"\
+                    "path doesn't exist :(")
+        return
 
 #################################################################HELPER FUNCTIONS###################################################################
 
@@ -164,7 +175,7 @@ def find_target(weak_peer_socket, file):
     query_id = [query_num,now_time]
     waiting_query_ids.append(query_id)
 
-    FIND_TARGET_OUT_TIME = 10
+    FIND_TARGET_OUT_TIME = 60
     time_passed = 0
 
     try:
@@ -295,14 +306,13 @@ if __name__ == "__main__":
     strong_peer_socket.listen()
 
     # Initialize super peer graph 
-    strong_peer_graph = Graph(len(STRONG_PEERS))
+    strong_peer_graph = Graph()
     for edge in EDGES:
         node_1 = [edge[0][0],int(edge[0][1])]
         node_2 = [edge[1][0],int(edge[1][1])]
 
         if node_1[0] == "s" and node_2[0] == "s":
-            strong_peer_graph.addEdge(node_1[1],node_2[1],1)
-            strong_peer_graph.addEdge(node_2[1],node_1[1],1)
+            strong_peer_graph.addEdge(node_1[1],node_2[1])
         
             #Initialize connections with other NEIGHBOR super peers
             if node_1[1] == STRONG_PEER_ID or node_2[1] == STRONG_PEER_ID:

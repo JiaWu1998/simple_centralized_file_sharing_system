@@ -140,7 +140,6 @@ def wait_for_list(full_command):
     for client in dir_list:
         print(f"Weak Peer with id {client}:")
         for file in dir_list[client]:
-            log_this(f"\t{file}")
             print(f"\t{file}")
 
 def parallelize_wait_for_file_download(peer_socket, files):
@@ -242,9 +241,9 @@ def wait_for_file_download(full_command,target_client, my_username):
     parameters = full_command.split(' ')[1:]
 
     # if the target client is itself, don't do anything
-    if target_client == WEAK_PEER_ID:
-        log_this("WrongClient: Target Client is Current Client.")
-        return
+    # if target_client == WEAK_PEER_ID:
+    #     log_this("WrongClient: Target Client is Current Client.")
+    #     return
 
     # initialize connections with the other peer
     weak_peer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -85,7 +85,39 @@ def evaluation_1():
 
     time.sleep(5)
 
-    weak_peer_0.communicate(input='download load_128'.encode("utf-8"))[0]
+    weak_peer_0.communicate(input='download load_128\n download load_512'.encode("utf-8"))[0]
+    weak_peer_2.communicate(input='download load_512'.encode("utf-8"))[0]
+
+    time.sleep(5)
+
+    download_completed = 0
+
+    f0 = open(f"{PARENT_DIR}/../weakpeer_0/client_log.txt","r")
+    lines0 = f0.readlines()
+    f0.close()
+    f2 = open(f"{PARENT_DIR}/../weakpeer_2/client_log.txt","r")
+    lines2 = f2.readlines()
+    f2.close()
+
+    for j in lines0:
+        try:
+            if j.split(' ')[2] == "DownloadComplete:":
+                download_completed += 1
+        except IndexError as e:
+            pass
+    
+    for j in lines2:
+        try:
+            if j.split(' ')[2] == "DownloadComplete:":
+                download_completed += 1
+        except IndexError as e:
+            pass
+    
+    if download_completed == 3:
+        print('Evaluation 1 Passed')
+    else:
+        print('Evaluation 1 Failed')
+
     time.sleep(5)
 
     strong_peer_0.kill()
@@ -97,11 +129,15 @@ def evaluation_1():
     weak_peer_2.kill()
 
     # Clean up
-    # delete_strong_peers(N)
-    # delete_weak_peers(N)
+    delete_strong_peers(N)
+    delete_weak_peers(N)
 
 # Evaluation 2:
-def evaluation_2():
+def evaluation_2_all_to_all():
+    pass
+
+def evaluation_2_linear():
+
     pass
 
 if __name__ == "__main__":
@@ -109,7 +145,7 @@ if __name__ == "__main__":
         evaluation_1()
 
     elif sys.argv[1] == "-2":
-        evaluation_2()
+        evaluation_2_linear()
 
     elif sys.argv[1] == "-c" and len(sys.argv) == 3:
         try: 

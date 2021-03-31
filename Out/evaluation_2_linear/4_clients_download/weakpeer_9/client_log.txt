@@ -1,0 +1,3 @@
+2021-03-30 22:22:26.869457 Listening for connections on 127.0.0.1:6020...
+2021-03-30 22:22:29.879342 MESSAGE SENT with metadata:WEAK message:weak_peer_9
+2021-03-30 22:22:29.893551 MESSAGE SENT with metadata:9 message:update_list 

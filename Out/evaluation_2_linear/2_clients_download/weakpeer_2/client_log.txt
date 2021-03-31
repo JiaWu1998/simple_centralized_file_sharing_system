@@ -1,0 +1,82 @@
+2021-03-30 22:17:21.042018 Listening for connections on 127.0.0.1:6013...
+2021-03-30 22:17:24.053830 MESSAGE SENT with metadata:WEAK message:weak_peer_2
+2021-03-30 22:17:24.055110 MESSAGE SENT with metadata:2 message:update_list load_8
+load_1
+load_6
+load_7
+load_0
+load_9
+load_5
+load_2
+load_3
+load_4
+2021-03-30 22:17:28.036149 Accepted new connection from 127.0.0.1:56792, username: weak_peer_0
+2021-03-30 22:17:28.036702 Recieved command from weak_peer_0: download
+
+2021-03-30 22:17:28.036817 Start Downloading Files: ['load_0']
+2021-03-30 22:17:28.037285 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:28.037370 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:28.037963 Closed connection from: weak_peer_0
+2021-03-30 22:17:29.104559 Accepted new connection from 127.0.0.1:56793, username: weak_peer_0
+2021-03-30 22:17:29.107523 Recieved command from weak_peer_0: download
+
+2021-03-30 22:17:29.107606 Start Downloading Files: ['load_1']
+2021-03-30 22:17:29.107865 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:29.107971 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:29.108503 Closed connection from: weak_peer_0
+2021-03-30 22:17:30.112772 Accepted new connection from 127.0.0.1:56794, username: weak_peer_0
+2021-03-30 22:17:30.112979 Recieved command from weak_peer_0: download
+
+2021-03-30 22:17:30.113056 Start Downloading Files: ['load_2']
+2021-03-30 22:17:30.113236 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:30.113402 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:30.123056 Closed connection from: weak_peer_0
+2021-03-30 22:17:31.123414 Accepted new connection from 127.0.0.1:56795, username: weak_peer_0
+2021-03-30 22:17:31.123678 Recieved command from weak_peer_0: download
+
+2021-03-30 22:17:31.123815 Start Downloading Files: ['load_3']
+2021-03-30 22:17:31.124029 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:31.124159 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:31.124635 Closed connection from: weak_peer_0
+2021-03-30 22:17:32.131488 Accepted new connection from 127.0.0.1:56796, username: weak_peer_0
+2021-03-30 22:17:32.131926 Recieved command from weak_peer_0: download
+
+2021-03-30 22:17:32.132014 Start Downloading Files: ['load_4']
+2021-03-30 22:17:32.132247 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:32.132339 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:32.132843 Closed connection from: weak_peer_0
+2021-03-30 22:17:33.155095 Accepted new connection from 127.0.0.1:56797, username: weak_peer_1
+2021-03-30 22:17:33.155625 Recieved command from weak_peer_1: download
+
+2021-03-30 22:17:33.155712 Start Downloading Files: ['load_5']
+2021-03-30 22:17:33.155912 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:33.155989 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:33.156683 Closed connection from: weak_peer_1
+2021-03-30 22:17:34.177257 Accepted new connection from 127.0.0.1:56798, username: weak_peer_1
+2021-03-30 22:17:34.177592 Recieved command from weak_peer_1: download
+
+2021-03-30 22:17:34.177670 Start Downloading Files: ['load_6']
+2021-03-30 22:17:34.177883 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:34.178009 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:34.178532 Closed connection from: weak_peer_1
+2021-03-30 22:17:34.186306 Accepted new connection from 127.0.0.1:56799, username: weak_peer_1
+2021-03-30 22:17:34.187037 Recieved command from weak_peer_1: download
+
+2021-03-30 22:17:34.187105 Start Downloading Files: ['load_7']
+2021-03-30 22:17:34.187429 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:34.187542 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:34.188047 Closed connection from: weak_peer_1
+2021-03-30 22:17:34.197366 Accepted new connection from 127.0.0.1:56800, username: weak_peer_1
+2021-03-30 22:17:34.197871 Recieved command from weak_peer_1: download
+
+2021-03-30 22:17:34.197949 Start Downloading Files: ['load_8']
+2021-03-30 22:17:34.198141 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:34.198219 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:34.198721 Closed connection from: weak_peer_1
+2021-03-30 22:17:35.225965 Accepted new connection from 127.0.0.1:56801, username: weak_peer_1
+2021-03-30 22:17:35.226228 Recieved command from weak_peer_1: download
+
+2021-03-30 22:17:35.226299 Start Downloading Files: ['load_9']
+2021-03-30 22:17:35.226492 MESSAGE SENT with metadata:0 message:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+2021-03-30 22:17:35.226574 MESSAGE SENT with metadata:END 0 message:73045f89f89b1604b62a6ae1ab4d4133
+2021-03-30 22:17:35.227081 Closed connection from: weak_peer_1

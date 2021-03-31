@@ -164,7 +164,7 @@ def evaluation_2():
     #     temp_process = Popen(['python','strong_peer.py'], stdout=PIPE, stdin=PIPE, stderr=PIPE, cwd=f"{PARENT_DIR}/../strongpeer_{i}")
     #     strong_peer_processes.append(temp_process)    
      
-    # time.sleep(5)
+    # time.sleep(8)
 
     # weak_peer_processes = []
     # for i in range(N):
@@ -202,7 +202,7 @@ def evaluation_2():
     #     p.kill()
 
     #########################################2 client download###################################
-    # # change between topolgy by changing the config.json
+    # change between topolgy by changing the config.json
 
     # number_of_downloading_clients = 2
     # N = 10
@@ -278,7 +278,7 @@ def evaluation_2():
     
     #########################################4 client download###################################
 
-    # # change between topolgy by changing the config.json
+    # change between topolgy by changing the config.json
 
     # number_of_downloading_clients = 4
     # N = 10
@@ -424,6 +424,61 @@ def evaluation_2():
     
     for p in weak_peer_processes:
         p.kill()
+
+    # Clean up
+    delete_strong_peers(N)
+    delete_weak_peers(N)
+
+def generate_graphs():
+    num_clients = [1,2,4,8]
+    out_alltoall_path = f"{os.path.dirname(os.path.abspath(__file__))}/../../Out/evaluation_2_all_to_all"
+    out_linear_path = f"{os.path.dirname(os.path.abspath(__file__))}/../../Out/evaluation_2_linear"
+    
+    all_to_all_data = []
+    linear_data = []
+
+    for i in num_clients:
+        total1 = 0
+        total2 = 0
+        for j in range(i):
+            file_path1 = f"{out_alltoall_path}/{i}_clients_download/weakpeer_{j}/client_log.txt"
+            file_path2 = f"{out_linear_path}/{i}_clients_download/weakpeer_{j}/client_log.txt"
+
+            f1 = open(file_path1,"r")
+            f2 = open(file_path2,"r")
+            lines1 = f1.readlines()
+            lines2 = f2.readlines()
+            f1.close()
+            f2.close()
+
+            for h in lines1:
+                try:
+                    if h.split(' ')[2] == "DownloadComplete:":
+                        total1 += float(h.split(' ')[3])
+                except IndexError as e:
+                    pass
+            for h in lines2:
+                try:
+                    if h.split(' ')[2] == "DownloadComplete:":
+                        total2 += float(h.split(' ')[3])
+                except IndexError as e:
+                    pass
+
+        total1 /= 10
+        total2 /= 10
+
+    # plt.plot(num_clients,all_to_all_data)
+    # plt.title('Average Response Time For Increasing Number Of Concurrent Peers')
+    # plt.xlabel('Number of Weak Peers Downloading')
+    # plt.ylabel('Average Query Response Time (ms)')
+    # plt.savefig(f"{PARENT_DIR}/all_to_all.png")
+
+    plt.plot(num_clients,linear_data)
+    plt.title('Average Response Time For Increasing Number Of Concurrent Peers')
+    plt.xlabel('Number of Weak Peers Downloading')
+    plt.ylabel('Average Query Response Time (ms)')
+    plt.savefig(f"{PARENT_DIR}/linear.png")
+            
     
 
 if __name__ == "__main__":
@@ -432,6 +487,9 @@ if __name__ == "__main__":
 
     elif sys.argv[1] == "-2":
         evaluation_2()
+    
+    elif sys.argv[1] == "-g":
+        generate_graphs()
 
     elif sys.argv[1] == "-c" and len(sys.argv) == 3:
         try: 
